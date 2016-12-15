@@ -211,13 +211,49 @@ class cosh(HyperbolicFunction):
 
     @property
     def is_positive(self):
-        if self.args[0].is_real:
+        from sympy import pi
+        arg = self.args[0]
+
+        if arg.is_real:
             return True
+
+        re, im = arg.as_real_imag()
+        if im % pi == 0 or re == 0:
+            val = im % (2*pi)
+            try:
+                if val < pi/2 or val > 3*pi/2:
+                    return True
+                elif val >= pi/2 and val <= 3*pi/2:
+                    return False
+            # if val is of type Relational, it raises a TypeError
+            except TypeError:
+                return None
+
+        elif im.is_number and re.is_number:
+            return False
 
     @property
     def is_nonnegative(self):
-        if self.args[0].is_real:
+        from sympy import pi
+        arg = self.args[0]
+
+        if arg.is_real:
             return True
+
+        re, im = arg.as_real_imag()
+        if im % pi == 0 or re == 0:
+            val = im % (2*pi)
+            try:
+                if val <= pi/2 or val >= 3*pi/2:
+                    return True
+                elif val > pi/2 and val < 3*pi/2:
+                    return False
+            # if val is of type Relational, it raises a TypeError
+            except TypeError:
+                return None
+
+        elif im.is_number and re.is_number:
+            return False
 
     def fdiff(self, argindex=1):
         if argindex == 1:

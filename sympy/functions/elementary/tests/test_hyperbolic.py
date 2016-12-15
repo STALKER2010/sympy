@@ -925,8 +925,10 @@ def test_cosh_positive():
     # See issue 11721
     # cosh(x) is positive for real values of x
     x = symbols('x')
-    k = symbols('k',real=True)
+    k = symbols('k', real=True)
+    n = symbols('n', integer=True)
 
-    assert cosh(x).is_positive is None
+    assert cosh(x).is_positive == None
     assert cosh(k).is_positive == True
     assert abs(cosh(k)) == cosh(k)
+    assert cosh(k + 2*n*pi*I).is_positive == True
