@@ -11,7 +11,7 @@ from __future__ import print_function, division
 
 from sympy.core.sympify import sympify
 from sympy.core import S, Pow, Dummy, pi, Expr, Wild, Mul, Equality
-from sympy.core.numbers import I, Number, Rational, oo
+from sympy.core.numbers import I, Number, Rational, oo, zoo
 from sympy.core.function import (Lambda, expand, expand_complex)
 from sympy.core.relational import Eq
 from sympy.simplify.simplify import simplify, fraction, trigsimp
@@ -223,6 +223,8 @@ def _invert_complex(f, g_ys, symbol):
         g, h = f.as_independent(symbol)
 
         if g is not S.One:
+            if g in set([-oo, zoo, oo]):
+                return (h, {})
             return _invert_complex(h, imageset(Lambda(n, n/g), g_ys), symbol)
 
     if hasattr(f, 'inverse') and \
@@ -635,11 +637,16 @@ def _solveset(f, symbol, domain, _check=False):
     orig_f = f
     f = together(f)
     if f.is_Mul:
-        _, f = f.as_independent(symbol, as_Add=False)
+        coeff, f = f.as_independent(symbol, as_Add=False)
+        if coeff in set([zoo,-oo,oo]):
+            f = orig_f
     if f.is_Add:
         a, h = f.as_independent(symbol)
         m, h = h.as_independent(symbol, as_Add=False)
-        f = a/m + h  # XXX condition `m != 0` should be added to soln
+
+        if m not in set([zoo, 0, oo, -oo]):
+            f = a/m + h  # XXX condition `m != 0` should be added to soln
+
     f = piecewise_fold(f)
 
     # assign the solvers to use
