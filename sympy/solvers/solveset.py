@@ -943,8 +943,9 @@ def solveset(f, symbol=None, domain=S.Complexes):
         elif b is S.false:
             return S.EmptySet
         else:
-            raise NotImplementedError(filldedent('''
-                relationship between value and 0 is unknown: %s''' % b))
+            pass
+            # raise NotImplementedError(filldedent('''
+            #    relationship between value and 0 is unknown: %s''' % b))
 
     if symbol is None:
         if len(free_symbols) == 1:

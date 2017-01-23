@@ -1325,11 +1325,13 @@ class Union(Set, EvalfMixin):
                         new_args = unique_elements(new_args)
                         break
                 if new_args:
-                    new_args = FiniteSet(*[ar for ar in new_args])
+                    # new_args = FiniteSet(*[ar for ar in new_args])
                     args = new_args
                     break
 
         if len(args) == 1:
+            if "pop" in dir(args):
+                return args.pop()
             return (args)[0]
         else:
             return Union(*args, evaluate=False)
