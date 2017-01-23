@@ -33,6 +33,7 @@ from sympy.solvers.inequalities import solve_univariate_inequality
 from sympy.utilities import filldedent
 from sympy.calculus.util import periodicity
 from sympy.core.compatibility import ordered, default_sort_key
+from sympy.logic.boolalg import BooleanAtom
 
 def _ispow(e):
     """Return True if e is a Pow or is exp."""
@@ -72,6 +73,7 @@ def _invert(f_x, y, x, domain=S.Complexes):
     >>> from sympy.solvers.solveset import invert_complex, invert_real
     >>> from sympy.abc import x, y
     >>> from sympy import exp, log
+    >>> from sympy import exp, sin, Symbol, pprint, S
 
     When does exp(x) == y?
 
@@ -366,39 +368,107 @@ def _is_function_class_equation(func_class, f, symbol):
 
 def _solve_as_rational(f, symbol, domain):
     """ solve rational functions"""
+    from sympy.core import expand_log
     f = together(f, deep=True)
     g, h = fraction(f)
+    g, h = g.expand(), h.expand()
     if not h.has(symbol):
         return _solve_as_poly(g, symbol, domain)
     else:
-        valid_solns = _solveset(g, symbol, domain)
-        invalid_solns = _solveset(h, symbol, domain)
-        return valid_solns - invalid_solns
+        # search for exp(I*x) terms
+        flag = False
+        if g.has(I) or h.has(I):
+            flag = True
+        if flag:
+            # to get soln in desired form  for
+            # solveset((tan(x)-1).rewrite(exp), x, S.Reals)
+            # and these type of expressions, we need to
+            # make polynomial equation by replace I*symbol with dummy.
+            y = Dummy('y')
+            # make it independent from exp(I*symbol)
+            g, h = g.subs(exp(I*symbol), y), h.subs(exp(I*symbol), y)
+
+            solns = _solveset(g, y, domain) - _solveset(h, y, domain)
+            if g.has(symbol) or h.has(symbol):
+                return ConditionSet(symbol, Eq(f, 0), S.Reals)
+            if isinstance(solns, FiniteSet):
+                result = Union(*[invert_complex(exp(I*symbol), s, symbol)[1]
+                       for s in solns])
+                if domain.is_subset(S.Reals):
+                    return result.intersection(domain)
+                else:
+                    return result
+            elif solns is S.EmptySet:
+                return S.EmptySet
+            else:
+                return ConditionSet(symbol, Eq(f_original, 0), S.Reals)
+        else:
+            valid_solns = _solveset(g, symbol, domain)
+            invalid_solns = _solveset(h, symbol, domain)
+            return valid_solns - invalid_solns
 
 
 def _solve_trig(f, symbol, domain):
     """ Helper to solve trigonometric equations """
-    f = trigsimp(f)
-    f_original = f
-    f = f.rewrite(exp)
-    f = together(f)
-    g, h = fraction(f)
-    y = Dummy('y')
-    g, h = g.expand(), h.expand()
-    g, h = g.subs(exp(I*symbol), y), h.subs(exp(I*symbol), y)
-    if g.has(symbol) or h.has(symbol):
-        return ConditionSet(symbol, Eq(f, 0), S.Reals)
+    from sympy import factor, factor_list
+    from sympy.simplify.fu import hyper_as_trig, fu
 
-    solns = solveset_complex(g, y) - solveset_complex(h, y)
+    if _is_function_class_equation(TrigonometricFunction, f, symbol):
+        f = trigsimp(f)
+    # trigsimp is not defined for hyperbolic
+    elif _is_function_class_equation(HyperbolicFunction, f, symbol):
+        try:
+            t, f = hyper_as_trig(f)
+            f = f(fu(t))
+            f = trigsimp(f)
+        except NotImplementedError:
+            pass
 
-    if isinstance(solns, FiniteSet):
-        result = Union(*[invert_complex(exp(I*symbol), s, symbol)[1]
-                       for s in solns])
-        return Intersection(result, domain)
-    elif solns is S.EmptySet:
-        return S.EmptySet
+    f_orig = f
+    if f.is_number or isinstance(f, (bool, BooleanAtom)):
+        # f is True in S.Reals
+        return ConditionSet(symbol, Eq(f, 0), domain)
+
+    # factor_list doesn't work `func*sin(x)` , where func
+    # is f(pi) or not a number.
+    # so `.as_independent` is used.
+    if f.is_Mul:
+        ind, f = f.as_independent(symbol)
+    fact_list = factor_list(Poly(f))[1]
+
+    soln = S.EmptySet
+    for fact in fact_list:
+        f1 = fact[0].as_expr()
+        f1 = f1.rewrite(exp)
+        factors = S.EmptySet
+        # factor the `exp` expression reduces the number of ImageSet
+        # eg. f = 4*sin(x)**3  + 2*sin(x)**2 - 2*sin(x) - 1, one can check by
+        # comparing soln of solveset(f) and solveset(factor(f.rewrite(exp)))
+        if len(fact_list) != 1:
+            # if only one term then no need of factorization
+            f1 = factor(f1)
+        if f1.is_Mul:
+            # exp form have multiplications, store each terms
+            for fact in f1.args:
+                # dont add numbers
+                if not fact.is_number:
+                    factors += FiniteSet(fact)
+        else:
+            factors = [f1]
+
+        for f2 in factors:
+            soln_fact = solveset_complex(f2, symbol)
+            soln = Union(soln, soln_fact)
+
+    if isinstance(soln, ConditionSet):
+        # try to solve without converting it into exp form.
+        # In this time if ConditionSet is returned then it's
+        # expression will be in Trigonometric Function(original eq).
+        return _solve_as_poly(f_orig, symbol, domain)
+    if domain.is_subset(S.Reals):
+        return soln.intersection(domain)
     else:
-        return ConditionSet(symbol, Eq(f_original, 0), S.Reals)
+        return soln
 
 
 def _solve_as_poly(f, symbol, domain=S.Complexes):
@@ -587,7 +657,7 @@ def solve_decomposition(f, symbol, domain):
                2
     >>> f3 = sin(x + 2)
     >>> pprint(sd(f3, x, S.Reals), use_unicode=False)
-    {2*n*pi - 2 | n in Integers()} U {pi*(2*n + 1) - 2 | n in Integers()}
+    {n*pi - 2 | n in Integers()}
 
     """
     from sympy.solvers.decompogen import decompogen
@@ -833,11 +903,11 @@ def solveset(f, symbol=None, domain=S.Complexes):
     but there may be some slight difference:
 
     >>> pprint(solveset(sin(x)/x,x), use_unicode=False)
-    ({2*n*pi | n in Integers()} \ {0}) U ({2*n*pi + pi | n in Integers()} \ {0})
+    {n*pi | n in Integers()} \ {0}
 
     >>> p = Symbol('p', positive=True)
     >>> pprint(solveset(sin(p)/p, p), use_unicode=False)
-    {2*n*pi | n in Integers()} U {2*n*pi + pi | n in Integers()}
+    {n*pi | n in Integers()}
 
     * Inequalities can be solved over the real domain only. Use of a complex
       domain leads to a NotImplementedError.

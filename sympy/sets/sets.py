@@ -1281,28 +1281,32 @@ class Union(Set, EvalfMixin):
 
         # ===== Pair-wise Rules =====
         # Here we depend on rules built into the constituent sets
-        args = set(args)
+        args = FiniteSet(*args)
         new_args = True
         while(new_args):
             for s in args:
                 new_args = False
-                for t in args - set((s,)):
+                args_without_s = set(args) - set(FiniteSet(s))
+                args_without_s = FiniteSet(*[ar for ar in args_without_s])
+                for t in args_without_s:
                     new_set = s._union(t)
                     # This returns None if s does not know how to intersect
                     # with t. Returns the newly intersected set otherwise
                     if new_set is not None:
                         if not isinstance(new_set, set):
                             new_set = set((new_set, ))
-                        new_args = (args - set((s, t))).union(new_set)
+                        remv = set((s, t))
+                        new_args = (set(args) - remv).union(new_set)
                         break
                 if new_args:
+                    new_args = FiniteSet(*[ar for ar in new_args])
                     args = new_args
                     break
 
         if len(args) == 1:
-            return args.pop()
+            return list(args)[0]
         else:
-            return Union(args, evaluate=False)
+            return Union(set(args), evaluate=False)
 
     def _complement(self, universe):
         # DeMorgan's Law
