@@ -23,7 +23,7 @@ from sympy.core.function import (expand_mul, expand_multinomial, expand_log,
                           Derivative, AppliedUndef, UndefinedFunction, nfloat,
                           Function, expand_power_exp, Lambda, _mexpand)
 from sympy.integrals.integrals import Integral
-from sympy.core.numbers import ilcm, Float
+from sympy.core.numbers import ilcm, Float, oo, zoo
 from sympy.core.relational import Relational, Ge
 from sympy.core.logic import fuzzy_not
 from sympy.logic.boolalg import And, Or, BooleanAtom
@@ -1329,6 +1329,9 @@ def _solve(f, *symbols, **flags):
     if f.is_Mul:
         result = set()
         for m in f.args:
+            if m in set([-oo, zoo, oo]):
+                result = set()
+                break
             soln = _solve(m, symbol, **flags)
             result.update(set(soln))
         result = list(result)
@@ -1383,7 +1386,7 @@ def _solve(f, *symbols, **flags):
         # first see if it really depends on symbol and whether there
         # is only a linear solution
         f_num, sol = solve_linear(f, symbols=symbols)
-        if f_num is S.Zero:
+        if f_num is S.Zero or sol is S.NaN:
             return []
         elif f_num.is_Symbol:
             # no need to check but simplify if desired
