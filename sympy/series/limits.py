@@ -57,8 +57,8 @@ def limit(e, z, z0, dir="+",exc=True):
 
 
 def heuristics(e, z, z0, dir):
-    rv = None
 
+    rv = None
     if abs(z0) is S.Infinity:
         rv = limit(e.subs(z, 1/z), z, S.Zero, "+" if z0 is S.Infinity else "-")
         if isinstance(rv, Limit):
@@ -179,6 +179,18 @@ class Limit(Expr):
 
         if e.is_Order:
             return Order(limit(e.expr, z, z0), *e.args[1:])
+
+        #Check to see if e is a simple power series, like (-1/2)**x
+        if e.is_Pow:
+            k = e.exp/z
+            if k.is_Number and k > 0:
+                a = abs(e.base)
+                if not a.has(z):
+                    try:
+                        if (a < 1 and z0 is S.Infinity) or (a > 1 and z0 is S.NegativeInfinity):
+                            return 0
+                    except TypeError:
+                        pass
 
         try:
             r = gruntz(e, z, z0, dir)

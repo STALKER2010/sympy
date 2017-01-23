@@ -493,3 +493,10 @@ def test_limit_with_Float():
     k = symbols("k")
     assert limit(1.0 ** k, k, oo) == 1
     assert limit(0.3*1.0**k, k, oo) == Float(0.3)
+
+def test_limit_with_negatives():
+    j = Rational(1,-2)
+    k = Rational(-2,1)
+    assert limit(j**x,x,oo) == 0
+    assert limit(k**x,x,-oo) == 0
+    raises(NotImplementedError,lambda: limit(j**(x*y),x,oo))
