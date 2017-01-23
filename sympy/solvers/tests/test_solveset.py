@@ -751,8 +751,6 @@ def test_solve_trig():
     assert solveset_real(sin(x) - 1, x) == \
         imageset(Lambda(n, 2 * pi * n + pi / 2), S.Integers)
 
-    assert solveset_real(sin(x)**2 + cos(x)**2, x) == S.EmptySet
-
 
 def test_solve_trig_2():
     img1 = imageset(Lambda(n, 2 * n * pi + pi / 3), S.Integers)
@@ -786,6 +784,12 @@ def test_issue_10426():
     lamb_expr = Lambda(n, (-1)**n * asin(sin(y)) + n * pi - y)
     soln = ImageSet(lamb_expr, S.Integers)
     assert solveset(sin(y + a) - sin(y), a, domain=S.Reals) == soln
+=======
+    assert solveset_real(sin(x) - 1, x) == \
+        imageset(Lambda(n, 2 * pi * n + pi / 2), S.Integers)
+
+    assert solveset_real(sin(x)**2 + cos(x)**2, x) == S.EmptySet
+>>>>>>> origin/pr/12011
 
 
 @XFAIL
@@ -1127,6 +1131,7 @@ def test_solve_decomposition():
     f5 = exp(x + 2) - 1
     f6 = 1/log(x)
 
+<<<<<<< HEAD
     s1 = ImageSet(Lambda(n, 2*n*pi), S.Integers)
     s2 = ImageSet(Lambda(n, 2*n*pi + pi), S.Integers)
     s3 = ImageSet(Lambda(n, 2*n*pi + pi/2), S.Integers)
@@ -1136,6 +1141,16 @@ def test_solve_decomposition():
     assert solve_decomposition(f2, x, S.Reals) == s3
     assert solve_decomposition(f3, x, S.Reals) == Union(s1, s2, s3)
     assert solve_decomposition(f4, x, S.Reals) == s4
+=======
+    s1 = ImageSet(Lambda(n, n*pi), S.Integers)
+    s2 = ImageSet(Lambda(n, 2*n*pi + pi/2), S.Integers)
+    s3 = ImageSet(Lambda(n, n*pi - 1), S.Integers)
+
+    assert solve_decomposition(f1, x, S.Reals) == FiniteSet(0, log(2), log(3))
+    assert solve_decomposition(f2, x, S.Reals) == s2
+    assert solve_decomposition(f3, x, S.Reals) == Union(s1, s2, evaluate=False)
+    assert solve_decomposition(f4, x, S.Reals) == s3
+>>>>>>> origin/pr/12011
     assert solve_decomposition(f5, x, S.Reals) == FiniteSet(-2)
     assert solve_decomposition(f6, x, S.Reals) == ConditionSet(x, Eq(f6, 0), S.Reals)
 
@@ -1148,6 +1163,11 @@ def test_nonlinsolve_basic():
     system = [x, y - x - 5]
     assert nonlinsolve([x],[x, y]) == FiniteSet((0, y))
     assert nonlinsolve(system, [y]) == FiniteSet((x + 5,))
+<<<<<<< HEAD
+=======
+    soln = (ImageSet(Lambda(n, 2*n*pi + pi/2), S.Integers),)
+    assert nonlinsolve([sin(x) - 1], [x]) == FiniteSet(soln)
+>>>>>>> origin/pr/12011
     assert nonlinsolve([x**2 - 1], [x]) == FiniteSet((-1,), (1,))
 
     soln = FiniteSet((- y, y), (y, y))
@@ -1176,10 +1196,13 @@ def test_trig_system():
 
 @XFAIL
 def test_trig_system_fail():
+<<<<<<< HEAD
     # Comparison error
     soln = (ImageSet(Lambda(n, 2*n*pi + pi/2), S.Integers),)
     assert nonlinsolve([sin(x) - 1], [x]) == FiniteSet(soln)
 
+=======
+>>>>>>> origin/pr/12011
     soln1 = (ImageSet(Lambda(n, 2*n*pi + pi/2), S.Integers),)
     soln = FiniteSet(soln1)
     assert nonlinsolve([sin(x) - 1, cos(x)], x) == soln
