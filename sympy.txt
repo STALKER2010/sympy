@@ -10,5 +10,6 @@
 @11924: Modified is_positive for cosh function
 @12010: Add kwarg 'ignore' to cse() for disqualification.
 @12011: Defining ImageSet union
-12040: solvers/solveset: Rectify solution for some special equations
+@12040: solvers/solveset: Rectify solution for some special equations
 12065: Better support for complex numbers in nsolve
+12087: Change set pretty printing to print with {}
