@@ -13,3 +13,6 @@
 12040: solvers/solveset: Rectify solution for some special equations
 12065: Better support for complex numbers in nsolve
 12087: Change set pretty printing to print with {}
+12222: solveset: can solve inequalities with abs() again
+12228: Change evaluate kwarg default to False (fixes gh-12186)
+12236: Fixed apart() producing wrong answer
