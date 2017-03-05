@@ -461,6 +461,23 @@ def _solve_trig(f, symbol, domain):
         for f2 in factors:
             soln_fact = solveset_complex(f2, symbol)
             soln = Union(soln, soln_fact)
+            result, changed = [], False
+            for i in soln.args:
+                if isinstance(i, ImageSet):
+                    l = i.lamda
+                    if isinstance(l, Lambda):
+                        le = l.expr
+                        if len(le.args) >= 2:
+                            result.append(imageset(i.lamda, i.base_set))
+                            changed = True
+                        else:
+                            result.append(i)
+                    else:
+                        result.append(i)
+                else:
+                    result.append(i)
+            if changed:
+                soln = Union(*result)
 
     if isinstance(soln, ConditionSet):
         # try to solve without converting it into exp form.
