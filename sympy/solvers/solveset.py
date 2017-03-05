@@ -723,23 +723,14 @@ def _solveset(f, symbol, domain, _check=False):
     tf = f = together(f)
     if f.is_Mul:
         coeff, f = f.as_independent(symbol, as_Add=False)
-<<<<<<< HEAD
-        if coeff in set([zoo,-oo,oo]):
-            f = orig_f
-=======
         if coeff in set([S.ComplexInfinity, S.NegativeInfinity, S.Infinity]):
             f = tf
->>>>>>> origin/pr/12040
     if f.is_Add:
         a, h = f.as_independent(symbol)
         m, h = h.as_independent(symbol, as_Add=False)
 
-<<<<<<< HEAD
-        if m not in set([zoo, 0, oo, -oo]):
-=======
         if m not in set([S.ComplexInfinity, S.Zero, S.Infinity,
                               S.NegativeInfinity]):
->>>>>>> origin/pr/12040
             f = a/m + h  # XXX condition `m != 0` should be added to soln
 
     f = piecewise_fold(f)
