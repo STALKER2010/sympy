@@ -1,15 +1,15 @@
-@10689: Real solution for some `const**(symbol)` type equation.
-@11188: simplified solution for trigonometric equations.
-@11234: solveset_integers for Integer solution.
-@11694: Bi-directional limits for functions with test
-@11701: Define limit for negative rational powers (#11672)
-@11709: Trig integrals
-@11711: Union(S.UniversalSet - Interval(1, 2), Interval(3, 4)) isn't simplified #9577
-@11718: _desolve() cleanup
-@11870: exponential to sinc function (rewrite)
-@11924: Modified is_positive for cosh function
-@12010: Add kwarg 'ignore' to cse() for disqualification.
-@12011: Defining ImageSet union
-@12040: solvers/solveset: Rectify solution for some special equations
-@12065: Better support for complex numbers in nsolve
-@12087: Change set pretty printing to print with {}
+10689: Real solution for some `const**(symbol)` type equation.
+11188: simplified solution for trigonometric equations.
+11234: solveset_integers for Integer solution.
+11694: Bi-directional limits for functions with test
+11701: Define limit for negative rational powers (#11672)
+11709: Trig integrals
+11711: Union(S.UniversalSet - Interval(1, 2), Interval(3, 4)) isn't simplified #9577
+11718: _desolve() cleanup
+11870: exponential to sinc function (rewrite)
+11924: Modified is_positive for cosh function
+12010: Add kwarg 'ignore' to cse() for disqualification.
+12011: Defining ImageSet union
+12040: solvers/solveset: Rectify solution for some special equations
+12065: Better support for complex numbers in nsolve
+12087: Change set pretty printing to print with {}
