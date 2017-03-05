@@ -229,8 +229,8 @@ def _invert_complex(f, g_ys, symbol):
         g, h = f.as_independent(symbol)
 
         if g is not S.One:
-            if g in set([-oo, zoo, oo]):
-                return (h, {})
+            if g in set([S.NegativeInfinity, S.ComplexInfinity, S.Infinity]):
+                return (h, S.EmptySet)
             return _invert_complex(h, imageset(Lambda(n, n/g), g_ys), symbol)
 
     if hasattr(f, 'inverse') and \
@@ -719,16 +719,26 @@ def _solveset(f, symbol, domain, _check=False):
     from sympy.simplify.simplify import signsimp
 
     orig_f = f
-    f = together(f)
+    tf = f = together(f)
     if f.is_Mul:
         coeff, f = f.as_independent(symbol, as_Add=False)
+<<<<<<< HEAD
         if coeff in set([zoo,-oo,oo]):
             f = orig_f
+=======
+        if coeff in set([S.ComplexInfinity, S.NegativeInfinity, S.Infinity]):
+            f = tf
+>>>>>>> origin/pr/12040
     if f.is_Add:
         a, h = f.as_independent(symbol)
         m, h = h.as_independent(symbol, as_Add=False)
 
+<<<<<<< HEAD
         if m not in set([zoo, 0, oo, -oo]):
+=======
+        if m not in set([S.ComplexInfinity, S.Zero, S.Infinity,
+                              S.NegativeInfinity]):
+>>>>>>> origin/pr/12040
             f = a/m + h  # XXX condition `m != 0` should be added to soln
 
     f = piecewise_fold(f)

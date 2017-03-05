@@ -1337,7 +1337,7 @@ def _solve(f, *symbols, **flags):
     if f.is_Mul:
         result = set()
         for m in f.args:
-            if m in set([-oo, zoo, oo]):
+            if m in set([S.NegativeInfinity, S.ComplexInfinity, S.Infinity]):
                 result = set()
                 break
             soln = _solve(m, symbol, **flags)
