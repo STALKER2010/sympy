@@ -346,23 +346,23 @@ class Add(Expr, AssocOp):
     # issue 5524.
 
     def _eval_power(self, e):
-        if e is S.Half:
+        if e is S.Half and self.is_number:
             from sympy.core.evalf import pure_complex
             from sympy.functions.elementary.complexes import sign
             from sympy.functions.elementary.miscellaneous import sqrt
-            ri = pure_complex(self)
+            n, d = self.as_numer_denom()
+            ri = pure_complex(n)
             if ri:
                 r, i = ri
-                if r.is_Integer and i.is_even:
-                        D = sqrt(r**2 + i**2)  # Pythagorean triple
-                        if D.is_Integer:
-                            arg = (D - r)/2
-                            if arg.is_Integer:  # parity matched
-                                root = sqrt(arg)
-                                if root.is_Integer:
-                                    return (  # principle value
-                                        2*root*abs((arg + r)/i) +
-                                        sign(i)*root*S.ImaginaryUnit)
+                D = sqrt(r**2 + i**2)  # Pythagorean triple
+                if D.is_Integer:
+                    root = sqrt((D - r)/2/d)
+                    # root is rational if D%2 == r%2 and d is square or
+                    # (d/2) is square.
+                    if root.is_Rational:
+                        return (  # principle value
+                            root*(D + r)/abs(i) +
+                            root*sign(i)*S.ImaginaryUnit)
 
     @cacheit
     def _eval_derivative(self, s):
