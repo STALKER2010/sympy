@@ -347,5 +347,16 @@ def test_issue_8582():
 def test_issue_8650():
     n = Symbol('n', integer=True, nonnegative=True)
     assert (n**n).is_positive is True
-    x = 5*n+5
-    assert (x**(5*(n+1))).is_positive is True
+    x = 5*n + 5
+    assert (x**(5*(n + 1))).is_positive is True
+
+
+def test_better_sqrt():
+    assert sqrt(3 + 4*I) == 2 + I
+    assert sqrt(3 - 4*I) == 2 - I
+    assert sqrt(-3 - 4*I) == 1 - 2*I
+    assert sqrt(-3 + 4*I) == 1 + 2*I
+    assert sqrt(32 + 24*I) == 6 + 2*I
+    assert sqrt(32 - 24*I) == 6 - 2*I
+    assert sqrt(-32 - 24*I) == 2 - 6*I
+    assert sqrt(-32 + 24*I) == 2 + 6*I

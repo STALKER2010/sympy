@@ -345,6 +345,25 @@ class Add(Expr, AssocOp):
     # let Expr.as_coeff_mul() just always return (S.One, self) for an Add.  See
     # issue 5524.
 
+    def _eval_power(self, e):
+        if e is S.Half:
+            from sympy.core.evalf import pure_complex
+            from sympy.functions.elementary.complexes import sign
+            from sympy.functions.elementary.miscellaneous import sqrt
+            ri = pure_complex(self)
+            if ri:
+                r, i = ri
+                if r.is_Integer and i.is_even:
+                        D = sqrt(r**2 + i**2)  # Pythagorean triple
+                        if D.is_Integer:
+                            arg = (D - r)/2
+                            if arg.is_Integer:  # parity matched
+                                root = sqrt(arg)
+                                if root.is_Integer:
+                                    return (  # principle value
+                                        2*root*abs((arg + r)/i) +
+                                        sign(i)*root*S.ImaginaryUnit)
+
     @cacheit
     def _eval_derivative(self, s):
         return self.func(*[a.diff(s) for a in self.args])
