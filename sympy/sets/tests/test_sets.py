@@ -1048,9 +1048,9 @@ def test_issue_8257():
 
 
 def test_Union_imageset_basic():
-    img1 = ImageSet(Lambda(n, 4*n + 4), S.Integers)
-    img2 = ImageSet(Lambda(n, 4*n), S.Integers)
-    assert Union(img1, img2) == img2
+    img1 = ImageSet(Lambda(n, 4*n), S.Integers)
+    img2 = ImageSet(Lambda(n, 4*n + 4), S.Integers)
+    assert Union(img1, img2) == img1
 
     img1 = ImageSet(Lambda(n, 15*n + S(15/2)), S.Integers)
     img2 = ImageSet(Lambda(n, 15*n), S.Integers)
@@ -1090,7 +1090,8 @@ def test_union_imageset():
     assert Union(img1, S.EmptySet) == img1
 
     img2 = ImageSet(Lambda(n, 2 * n * pi + pi), S.Integers)
-    assert Union(img1, img2) == ImageSet(Lambda(n, n * pi), S.Integers)
+    uni = ImageSet(Lambda(n, n * pi), S.Integers)
+    assert Union(img1, img2) == uni
 
     img2 = ImageSet(Lambda(n, 2 * n * pi + pi), Interval(0, 10))
     uni = Union(img1, img2, evaluate=False)

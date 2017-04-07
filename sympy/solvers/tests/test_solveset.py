@@ -747,11 +747,11 @@ def test_solve_trig():
     assert solveset_real(cos(x), x) == \
         imageset(Lambda(n, n * pi + pi / 2), S.Integers)
 
-    assert solveset_real(cos(x) + sin(x), x) == \
-        ImageSet(Lambda(n, n * pi - pi / 4), S.Integers)
-
     assert solveset_real(sin(x) - 1, x) == \
         imageset(Lambda(n, 2 * pi * n + pi / 2), S.Integers)
+
+    assert solveset_real(cos(x) + sin(x), x) == \
+        ImageSet(Lambda(n, n * pi + 3*pi / 4), S.Integers)
 
     assert solveset_real(sin(x)**2 + cos(x)**2, x) == S.EmptySet
 
@@ -1130,15 +1130,14 @@ def test_solve_decomposition():
     f5 = exp(x + 2) - 1
     f6 = 1/log(x)
 
-    s1 = ImageSet(Lambda(n, 2*n*pi), S.Integers)
-    s2 = ImageSet(Lambda(n, 2*n*pi + pi), S.Integers)
-    s3 = ImageSet(Lambda(n, 2*n*pi + pi/2), S.Integers)
-    s4 = ImageSet(Lambda(n, n*pi - 1), S.Integers)
+    s1 = ImageSet(Lambda(n, n*pi), S.Integers)
+    s2 = ImageSet(Lambda(n, 2*n*pi + pi/2), S.Integers)
+    s3 = ImageSet(Lambda(n, n*pi - 1), S.Integers)
 
     assert solve_decomposition(f1, x, S.Reals) == FiniteSet(0, log(2), log(3))
-    assert solve_decomposition(f2, x, S.Reals) == s3
-    assert solve_decomposition(f3, x, S.Reals) == Union(s1, s2, s3)
-    assert solve_decomposition(f4, x, S.Reals) == s4
+    assert solve_decomposition(f2, x, S.Reals) == s2
+    assert solve_decomposition(f3, x, S.Reals) == Union(s1, s2, evaluate=False)
+    assert solve_decomposition(f4, x, S.Reals) == s3
     assert solve_decomposition(f5, x, S.Reals) == FiniteSet(-2)
     assert solve_decomposition(f6, x, S.Reals) == ConditionSet(x, Eq(f6, 0), S.Reals)
 
@@ -1151,6 +1150,8 @@ def test_nonlinsolve_basic():
     system = [x, y - x - 5]
     assert nonlinsolve([x],[x, y]) == FiniteSet((0, y))
     assert nonlinsolve(system, [y]) == FiniteSet((x + 5,))
+    soln = (ImageSet(Lambda(n, 2*n*pi + pi/2), S.Integers),)
+    assert nonlinsolve([sin(x) - 1], [x]) == FiniteSet(soln)
     assert nonlinsolve([x**2 - 1], [x]) == FiniteSet((-1,), (1,))
 
     soln = FiniteSet((- y, y), (y, y))

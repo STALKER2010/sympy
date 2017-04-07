@@ -553,15 +553,15 @@ class ImageSet(Set):
                     i = i - 1
                 return imgset.lamda(next(iterable))
 
-        def _attempt_1(self_expr, other_expr, var_self, var_other, base):
-            var_term = self_expr.coeff(var_self)
-            if var_term == 0:
+        def club_imageset(self_expr, other_expr, var_self, var_other, base):
+            var_coeff = self_expr.coeff(var_self)
+            if var_coeff == 0:
                 # if not able to find coeff of var_self in
                 # self_expr(some complex expr)
                 return None
             try:
                 if self_expr.coeff(var_self) != other_expr.coeff(var_other):
-                    # TypeError: Equation should be a polynomial with Rational
+                    # TypeError: If Expression is not a polynomial with Rational
                     # coefficients.
                     if self.is_superset(other):
                         return self
@@ -569,23 +569,42 @@ class ImageSet(Set):
                         return other
                     else:
                         return None
-                # use 1 dummy/variable var_self (dummy of self.lamda.variables)
+
+                # use one dummy variable(var_self, dummy variable of
+                # self.lamda.variables)
                 other_expr = other_expr.subs(var_other, var_self)
-                if simplify(other_expr - self_expr) % var_term == var_term / 2:
-                    # (a*n*pi + pi + expr1) - ( a*n*pi  + exp1) == (a/2)*pi*n
-                    # can be => (a/2)*pi*n + expr1
-                    other_expr = (var_term / 2) * var_self + val_at(self, 0)
+                if simplify(other_expr - self_expr) % var_coeff == var_coeff / 2:
+                    '''
+                    E.g.
+                    other_expr = var_coeff*n*pi + pi + expr1
+                    self_expr = var_coeff*n*pi  + exp1
+                    var_coeff = 2
+                    other_expr - self_expr == (var_coeff/2)*pi*n
+                    So we can combine them and can write
+                    `(var_coeff/2)*pi*n + expr1`, this can generate other
+                    values of `other_expr` and `self_expr`.
+                    '''
+                    other_expr = (var_coeff / 2) * var_self + val_at(self, 0)
                     return ImageSet(Lambda(var_self, other_expr), base)
-                elif simplify(other_expr - self_expr) % var_term == 0:
-                    # (a*n*pi + expr1) - ( a*n*pi  + a*pi + exp1) == 0
-                    # can be => a*pi*n + expr1
-                    other_expr = var_term * var_self + val_at(self, 0)
+                elif simplify(other_expr - self_expr) % var_coeff == 0:
+                    '''
+                    E.g.
+                    other_expr = (var_coeff*n*pi + expr1)
+                    self_expr = (var_coeff*n*pi  + var_coeff*pi + exp1)
+                    var_coeff = 2
+                    other_expr - self_expr == 0
+                    So we can combine them and can write
+                    `var_coeff*pi*n + expr1`, this can generate other
+                    values of `other_expr` and `self_expr`.
+                    '''
+                    other_expr = var_coeff * var_self + val_at(self, 0)
                     return ImageSet(Lambda(var_self, other_expr), base)
+                # other ways can be added here.
                 else:
                     return None
             except TypeError:
                 return None
-        # end of def _attempt_1()
+        # end of def club_imageset()
 
         if isinstance(other, ImageSet):
             base = other.base_set
@@ -610,9 +629,10 @@ class ImageSet(Set):
                     return None
             except PolynomialError:
                 return None
-            ans = _attempt_1(self_expr, other_expr,
+            ans = club_imageset(self_expr, other_expr,
                              var_self, var_other, base)
-            # Add more ways to club `self` and `other` ImageSet
+            # One can try other ways to club `self` and `other` ImageSet.Add
+            # the code here.
             return ans
         else:
             return None
