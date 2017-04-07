@@ -347,5 +347,25 @@ def test_issue_8582():
 def test_issue_8650():
     n = Symbol('n', integer=True, nonnegative=True)
     assert (n**n).is_positive is True
-    x = 5*n+5
-    assert (x**(5*(n+1))).is_positive is True
+    x = 5*n + 5
+    assert (x**(5*(n + 1))).is_positive is True
+
+
+def test_better_sqrt():
+    assert sqrt(3 + 4*I) == 2 + I
+    assert sqrt(3 - 4*I) == 2 - I
+    assert sqrt(-3 - 4*I) == 1 - 2*I
+    assert sqrt(-3 + 4*I) == 1 + 2*I
+    assert sqrt(32 + 24*I) == 6 + 2*I
+    assert sqrt(32 - 24*I) == 6 - 2*I
+    assert sqrt(-32 - 24*I) == 2 - 6*I
+    assert sqrt(-32 + 24*I) == 2 + 6*I
+
+    # triple (3, 4, 5):
+    # parity of 3 matches parity of 5 and
+    # den, 4, is a square
+    assert sqrt((3 + 4*I)/4) == 1 + I/2
+    # triple (8, 15, 17)
+    # parity of 8 doesn't match parity of 17 but
+    # den/2, 8/2, is a square
+    assert sqrt((8 + 15*I)/8) == S(5)/4 + 3*I/4
