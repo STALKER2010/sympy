@@ -1211,7 +1211,7 @@ def manualintegrate(f, var):
     >>> manualintegrate(tan(x), x)
     -log(cos(x))
     >>> integrate(tan(x), x)
-    -log(sin(x)**2 - 1)/2
+    -log(cos(x))
 
     See Also
     ========
