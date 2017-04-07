@@ -16,6 +16,7 @@ from sympy.functions.elementary.hyperbolic import (acoth, asinh, atanh, cosh,
 from sympy.sets.sets import FiniteSet
 from sympy.utilities.iterables import numbered_symbols
 from sympy.core.compatibility import range
+from sympy.core.relational import Ne
 
 ###############################################################################
 ########################## TRIGONOMETRIC FUNCTIONS ############################
@@ -399,6 +400,9 @@ class sin(TrigonometricFunction):
 
     def _eval_rewrite_as_sec(self, arg):
         return 1 / sec(arg - S.Pi / 2, evaluate=False)
+
+    def _eval_rewrite_as_sinc(self, arg):
+        return arg*sinc(arg)
 
     def _eval_conjugate(self):
         return self.func(self.args[0].conjugate())
@@ -1789,7 +1793,7 @@ class sinc(TrigonometricFunction):
         return jn(0, arg)
 
     def _eval_rewrite_as_sin(self, arg):
-        return sin(arg) / arg
+        return (sin(arg)/arg, Ne(arg, 0))
 
 
 ###############################################################################
