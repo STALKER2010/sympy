@@ -510,3 +510,11 @@ def test_issue_10610():
 
 def test_issue_6599():
     assert limit((n + cos(n))/n, n, oo) == 1
+
+
+def test_limit_with_negatives():
+    j = Rational(1,-2)
+    k = Rational(-2,1)
+    assert limit(j**x,x,oo) == 0
+    assert limit(k**x,x,-oo) == 0
+    raises(NotImplementedError,lambda: limit(j**(x*y),x,oo))
