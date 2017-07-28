@@ -14,16 +14,7 @@ from sympy.core import S, Pow, Dummy, pi, Expr, Wild, Mul, Equality
 from sympy.core.numbers import I, Number, Rational, oo
 from sympy.core.function import (Lambda, expand_complex)
 from sympy.core.relational import Eq
-<<<<<<< HEAD
-<<<<<<< HEAD
-from sympy.simplify.simplify import simplify, fraction, trigsimp
-=======
-from sympy.simplify import simplify, fraction, trigsimp, powdenest
-=======
 from sympy.simplify import simplify, fraction, trigsimp, powdenest, logcombine
->>>>>>> 0fa87af... design modifications to solve_log
-from sympy.core.symbol import Symbol
->>>>>>> 53de559... adding flag argument to transolve
 from sympy.functions import (log, Abs, tan, cot, sin, cos, sec, csc, exp,
                              acos, asin, acsc, asec, arg,
                              piecewise_fold)
@@ -31,20 +22,12 @@ from sympy.functions.elementary.trigonometric import (TrigonometricFunction,
                                                       HyperbolicFunction)
 from sympy.functions.elementary.miscellaneous import real_root
 from sympy.sets import (FiniteSet, EmptySet, imageset, Interval, Intersection,
-<<<<<<< HEAD
                         Union, ConditionSet, ImageSet, Complement)
 from sympy.matrices import Matrix
 from sympy.polys import (roots, Poly, degree, together, PolynomialError,
-                         RootOf)
+                         RootOf, factor)
 from sympy.solvers.solvers import checksol, denoms, unrad, _simple_dens
 from sympy.solvers.polysys import solve_poly_system
-=======
-                        Union, ConditionSet, Complement)
-from sympy.matrices import Matrix
-from sympy.polys import (roots, Poly, degree, together, PolynomialError,
-                         RootOf, factor)
-from sympy.solvers.solvers import checksol, denoms, unrad
->>>>>>> 53de559... adding flag argument to transolve
 from sympy.solvers.inequalities import solve_univariate_inequality
 from sympy.utilities import filldedent
 from sympy.calculus.util import periodicity, continuous_domain
@@ -593,7 +576,6 @@ def _solve_abs(f, symbol, domain):
         return ConditionSet(symbol, Eq(f, 0), domain)
 
 
-<<<<<<< HEAD
 def solve_decomposition(f, symbol, domain):
     """
     Function to solve equations via the principle of "Decomposition
@@ -666,8 +648,6 @@ def solve_decomposition(f, symbol, domain):
     return y_s
 
 
-=======
->>>>>>> 1374887... initial commit for transolve
 def _solveset(f, symbol, domain, _check=False):
     """Helper for solveset to return a result from an expression
     that has already been sympify'ed and is known to contain the
