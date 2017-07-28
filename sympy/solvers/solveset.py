@@ -719,7 +719,7 @@ def _solveset(f, symbol, domain, _check=False):
             # be repeated for each step of the inversion
             if isinstance(rhs_s, FiniteSet):
                 rhs_s = FiniteSet(*[Mul(*
-                    signsimp(i).as_content_primitive())
+                    signsimp(simplify(i)).as_content_primitive())
                     for i in rhs_s])
             result = rhs_s
 
@@ -778,6 +778,7 @@ def _solveset(f, symbol, domain, _check=False):
 def transolve(f, symbol, domain, **flags):
     """Helper for solving transcendental equations."""
 
+    orig_f = fraction(together(f, deep=True))[0]
     if 'tsolve_saw' not in flags:
         flags['tsolve_saw'] = []
     if f in flags['tsolve_saw']:
@@ -785,13 +786,13 @@ def transolve(f, symbol, domain, **flags):
     else:
         flags['tsolve_saw'].append(f)
 
-    lhs, rhs_s = _invert(f, 0, symbol, domain)
+    inverter = invert_real if domain.is_subset(S.Reals) else invert_complex
+    lhs, rhs_s = inverter(f, 0, symbol, domain)
 
     result = S.EmptySet
     if lhs.is_Add:
         # solving equation
         for rhs in rhs_s:
-            orig_f = f
             f = simplify(factor(powdenest(lhs - rhs)))
             g = _check_log(f)
             if f.is_Mul:
@@ -805,7 +806,7 @@ def transolve(f, symbol, domain, **flags):
 
 
     if result is S.EmptySet:
-        result = ConditionSet(symbol, Eq(f, 0), domain)
+        result = ConditionSet(symbol, Eq(orig_f, 0), domain)
 
     return result
 
