@@ -55,13 +55,14 @@ def gammasimp(expr, as_comb=False):
     ========
 
     >>> from sympy.simplify import gammasimp
-    >>> from sympy import factorial, binomial
-    >>> from sympy.abc import n, k
+    >>> from sympy import gamma, factorial, Symbol
+    >>> from sympy.abc import x
+    >>> n = Symbol('n', integer = True)
 
-    >>> gammasimp(factorial(n)/factorial(n - 3))
-    n*(n - 2)*(n - 1)
-    >>> gammasimp(binomial(n+1, k+1)/binomial(n, k))
-    (n + 1)/(k + 1)
+    >>> gammasimp(gamma(x)/gamma(x - 3))
+    (x - 3)*(x - 2)*(x - 1)
+    >>> gammasimp(gamma(n + 3), as_comb = True)
+    factorial(n + 2)
 
     """
 

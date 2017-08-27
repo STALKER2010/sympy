@@ -37,8 +37,8 @@ def combsimp(expr):
     ========
 
     >>> from sympy.simplify import combsimp
-    >>> from sympy import factorial, binomial
-    >>> from sympy.abc import n, k
+    >>> from sympy import factorial, binomial, symbols
+    >>> n, k = symbols('n k', integer = True)
 
     >>> combsimp(factorial(n)/factorial(n - 3))
     n*(n - 2)*(n - 1)
