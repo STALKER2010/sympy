@@ -683,7 +683,7 @@ To simplify combinatorial expressions, use ``combsimp()``.
     k + 1
 
 gammasimp
---------
+---------
 
 To simplify expressions with gamma functions or combinatorial functions with
 non-integer argument, use ``gammasimp()``.
