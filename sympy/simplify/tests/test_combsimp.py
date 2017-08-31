@@ -1,6 +1,7 @@
 from sympy import (
     combsimp, factorial, gamma, binomial, S, FallingFactorial, RisingFactorial,
     symbols)
+from sympy.abc import x
 
 
 def test_combsimp():
@@ -21,6 +22,8 @@ def test_combsimp():
         factorial(n + 1)/(1 + k)
 
     assert combsimp(gamma(n + 3)) == factorial(n + 2)
+
+    assert combsimp(factorial(x)) == gamma(x + 1)
 
     # issue 9699
     assert combsimp((n + 1)*factorial(n)) == factorial(n + 1)
@@ -53,11 +56,3 @@ def test_combsimp():
         n*(n - 1)*(n - 2)
     assert combsimp(6*RisingFactorial(4, -n - 1)/factorial(-n - 1)) == \
         -n*(n - 1)*(n - 2)
-
-
-def test_combsimp_deprecated():
-    from sympy.abc import x
-    from sympy.utilities.pytest import raises
-    from sympy.utilities.exceptions import SymPyDeprecationWarning
-    with raises(SymPyDeprecationWarning):
-        combsimp(gamma(x))

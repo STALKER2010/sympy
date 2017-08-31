@@ -12,7 +12,7 @@ from sympy.polys import factor, cancel
 from sympy.utilities.iterables import sift, uniq
 
 
-def gammasimp(expr, as_comb=False):
+def gammasimp(expr):
     r"""
     Simplify expressions with gamma functions.
 
@@ -20,10 +20,6 @@ def gammasimp(expr, as_comb=False):
     functions or functions that can be rewritten in terms of gamma
     functions and tries to minimize the number of those functions and
     reduce the size of their arguments.
-
-    If as_comb is True and every argument of gamma functions is integers,
-    it tries to preserve them and rewrite expression in terms of
-    factorials and binomials after simplification. (False by default)
 
     The algorithm works by rewriting all gamma functions as expressions
     involving rising factorials (Pochhammer symbols) and applies
@@ -33,7 +29,7 @@ def gammasimp(expr, as_comb=False):
     being an integer are expanded into polynomial forms and finally all
     other rising factorial are rewritten in terms of gamma functions.
 
-    Then the following two steps are performed if as_comb is False.
+    Then the following two steps are performed.
 
     1. Reduce the number of gammas by applying the reflection theorem
        gamma(x)*gamma(1-x) == pi/sin(pi*x).
@@ -42,9 +38,6 @@ def gammasimp(expr, as_comb=False):
 
     It then reduces the number of prefactors by absorbing them into gammas
     where possible and expands gammas with rational argument.
-
-    If as_comb is True, it rewrites gammas as factorials and converts
-    (a+b)!/a!b! into binomials.
 
     All transformation rules can be found (or was derived from) here:
 
@@ -61,20 +54,13 @@ def gammasimp(expr, as_comb=False):
 
     >>> gammasimp(gamma(x)/gamma(x - 3))
     (x - 3)*(x - 2)*(x - 1)
-    >>> gammasimp(gamma(n + 3), as_comb = True)
-    factorial(n + 2)
+    >>> gammasimp(gamma(n + 3))
+    gamma(n + 3)
 
     """
 
     expr = expr.rewrite(gamma)
-    as_comb = as_comb and not any(isinstance(node, gamma) and not node.args[0]
-        .is_integer for node in preorder_traversal(expr))
-
-    expr = _gammasimp(expr, as_comb)
-    if as_comb:
-        from .combsimp import _gamma_as_comb
-        expr = _gamma_as_comb(expr)
-    return expr
+    return _gammasimp(expr, as_comb = False)
 
 
 def _gammasimp(expr, as_comb):

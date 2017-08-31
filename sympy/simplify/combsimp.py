@@ -22,16 +22,16 @@ def combsimp(expr):
     the size of their arguments.
 
     The algorithm works by rewriting all combinatorial functions as
-    gamma functions and applying gammasimp(). See docstring of gammasimp
-    for more information.
+    gamma functions and applying gammasimp() except simplification
+    steps that may make an integer argument non-integer. See docstring
+    of gammasimp for more information.
 
-    Then it rewrite expression in terms of factorials and binomials by
+    Then it rewrites expression in terms of factorials and binomials by
     rewriting gammas as factorials and converting (a+b)!/a!b! into
     binomials.
 
-    Using combsimp() to simplify expressions with gamma functions or
-    combinatorial functions with non-integer argument has been
-    deprecated. Use gammasimp() instead.
+    If expression has gamma functions or combinatorial functions
+    with non-integer argument, it is automatically passed to gammasimp.
 
     Examples
     ========
@@ -52,12 +52,6 @@ def combsimp(expr):
     expr = expr.rewrite(gamma)
     if any(isinstance(node, gamma) and not node.args[0].is_integer
         for node in preorder_traversal(expr)):
-        SymPyDeprecationWarning(
-            feature="Using combsimp() to simplify expressions with gamma "
-            "functions or combinatorial functions with non-integer argument",
-            useinstead="gammasimp()",
-            issue=9785,
-            deprecated_since_version="1.1.2").warn()
         return gammasimp(expr);
 
     expr = _gammasimp(expr, as_comb = True)
@@ -67,7 +61,7 @@ def combsimp(expr):
 
 def _gamma_as_comb(expr):
     """
-    Helper function for combsimp and gammasimp with as_comb=True.
+    Helper function for combsimp.
 
     Rewrites expression in terms of factorials and binomials
     """

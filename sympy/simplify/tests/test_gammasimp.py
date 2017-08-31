@@ -88,17 +88,15 @@ def test_gammasimp():
     # issue 11548
     assert gammasimp(binomial(0, x)) == sin(pi*x)/(pi*x)
 
-    i = Symbol('i', integer=True)
-    e = gamma(exp(i))
-    assert gammasimp(e) == e
     e = gamma(n + S(1)/3)*gamma(n + S(2)/3)
     assert gammasimp(e) == e
     assert gammasimp(gamma(4*n + S(1)/2)/gamma(2*n - S(3)/4)) == \
         2**(4*n - S(5)/2)*(8*n - 3)*gamma(2*n + S(3)/4)/sqrt(pi)
 
-
-def test_gammasimp_as_comb():
-    n, k = symbols('n k', integer = True)
-    assert gammasimp(gamma(n + 3), as_comb = True) == factorial(n + 2)
-    assert gammasimp(gamma(n + 1)/(gamma(k + 1)*gamma(-k + n + 1)),
-        as_comb = True) == binomial(n, k)
+    i, m = symbols('i m', integer = True)
+    e = gamma(exp(i))
+    assert gammasimp(e) == e
+    e = gamma(m + 3)
+    assert gammasimp(e) == e
+    e = gamma(m + 1)/(gamma(i + 1)*gamma(-i + m + 1))
+    assert gammasimp(e) == e

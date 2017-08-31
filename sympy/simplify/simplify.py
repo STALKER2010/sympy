@@ -8,7 +8,6 @@ from sympy.core import (Basic, S, Add, Mul, Pow,
     symbols, expand_power_exp)
 from sympy.core.compatibility import (iterable,
     ordered, range, as_int)
-from sympy.core.basic import preorder_traversal
 from sympy.core.numbers import Float, I, pi, Rational, Integer
 from sympy.core.function import expand_log, count_ops, _mexpand, _coeff_isneg
 from sympy.core.rules import Transform
@@ -32,7 +31,6 @@ from sympy.simplify.powsimp import powsimp
 from sympy.simplify.cse_opts import sub_pre, sub_post
 from sympy.simplify.sqrtdenest import sqrtdenest
 from sympy.simplify.combsimp import combsimp
-from sympy.simplify.gammasimp import gammasimp
 
 from sympy.polys import (together, cancel, factor)
 
@@ -574,12 +572,9 @@ def simplify(expr, ratio=1.7, measure=count_ops, fu=False):
         expr = shorter(expand_log(expr, deep=True), logcombine(expr))
 
     if expr.has(CombinatorialFunction, gamma):
-        expr = expr.rewrite(gamma)
-        if any(isinstance(node, gamma) and not node.args[0].is_integer
-            for node in preorder_traversal(expr)):
-            expr = gammasimp(expr)
-        else:
-            expr = combsimp(expr)
+        # expression with gamma functions or non-integer arguments is
+        # automatically passed to gammasimp
+        expr = combsimp(expr)
 
     if expr.has(Sum):
         expr = sum_simplify(expr)
