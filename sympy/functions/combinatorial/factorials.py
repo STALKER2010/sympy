@@ -19,11 +19,10 @@ class CombinatorialFunction(Function):
     """Base class for combinatorial functions. """
 
     def _eval_simplify(self, ratio, measure):
-        from sympy.simplify.simplify import combsimp, gammasimp
-        if all(arg.is_integer for arg in self.args):
-            expr = combsimp(self)
-        else:
-            expr = gammasimp(self)
+        from sympy.simplify import combsimp
+        # combinatorial function with non-integer arguments is
+        # automatically passed to gammasimp
+        expr = combsimp(self)
         if measure(expr) <= ratio*measure(self):
             return expr
         return self
