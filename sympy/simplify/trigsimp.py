@@ -1084,7 +1084,7 @@ def futrig(e, **kwargs):
 
     if kwargs.pop('hyper', True) and e.has(HyperbolicFunction):
         e, f = hyper_as_trig(e)
-        e = f(_futrig(e))
+        e = f(_futrig(e, _hyper=True))
 
     if e != old and e.is_Mul and e.args[0].is_Rational:
         # redistribute leading coeff on 2-arg Add
@@ -1129,7 +1129,8 @@ def _futrig(e, **kwargs):
         TR14,  # factored powers of identities
         [identity, lambda x: _eapply(_mexpand, x, trigs)],
         TRmorrie,
-        TR10i,  # sin-cos products > sin-cos of sums
+        # sin-cos products > sin-cos of sums
+        lambda x: TR10i(x, _hyper=kwargs.pop('_hyper', False)),
         [identity, TR8],  # sin-cos products -> sin-cos of sums
         [identity, lambda x: TR2i(TR2(x))],  # tan -> sin-cos -> tan
         [
