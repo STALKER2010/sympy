@@ -47,7 +47,7 @@ def _peeloff_ipi(arg):
     >>> from sympy import pi, I
     >>> from sympy.abc import x, y
     >>> peel(x + I*pi/2)
-    (x, pi/2)
+    (x, I*pi/2)
     >>> peel(x + I*2*pi/3 + I*pi*y)
     (x + I*pi*y + I*pi/6, I*pi/2)
     """
