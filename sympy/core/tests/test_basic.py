@@ -9,7 +9,7 @@ from sympy.core.singleton import S, Singleton
 from sympy.core.symbol import symbols
 from sympy.core.compatibility import default_sort_key, with_metaclass
 
-from sympy import sin, Lambda, Q, cos, gamma
+from sympy import sin, Lambda, Q, cos, gamma, integrate, sinc, Piecewise, Eq
 from sympy.functions.elementary.exponential import exp
 from sympy.functions.elementary.miscellaneous import Max, Min
 from sympy.functions.elementary.piecewise import Piecewise
@@ -236,6 +236,14 @@ def test_rewrite():
     assert Min(x, y, z).rewrite(Piecewise) == Piecewise((x, (x <= y) & (x <= z)), (y, y <= z), (z, True))
     assert Min(x,  y, a, b).rewrite(Piecewise) ==  Piecewise((a, (a <= b) & (a <= x) & (a <= y)),
         (b, (b <= x) & (b <= y)), (x, x <= y), (y, True))
+
+def test_issue_11864():
+    w = symbols('w', real=True)
+    k = symbols('k', real=True)
+    f = 1 / 2 / pi *exp(I * w * k)
+    F = integrate(f, (w, -pi, pi))
+    soln = Piecewise((1, Eq(pi*k, 0)), (sinc(pi*k), True))
+    assert F.rewrite(sin).rewrite(sinc).simplify() == soln
 
 
 def test_literal_evalf_is_number_is_zero_is_comparable():
