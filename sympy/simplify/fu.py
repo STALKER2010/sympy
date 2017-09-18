@@ -195,7 +195,7 @@ from sympy.core.sympify import sympify
 from sympy.functions.elementary.trigonometric import (
     cos, sin, tan, cot, sec, csc, sqrt, TrigonometricFunction)
 from sympy.functions.elementary.hyperbolic import (
-    cosh, sinh, tanh, coth, HyperbolicFunction)
+    cosh, sinh, tanh, coth, sech, csch, HyperbolicFunction)
 from sympy.core.compatibility import ordered, range
 from sympy.core.expr import Expr
 from sympy.core.mul import Mul
@@ -804,7 +804,7 @@ def TR10(rv, first=True):
     return bottom_up(rv, f)
 
 
-def TR10i(rv):
+def TR10i(rv, _hyper=False):
     """Sum of products to function of sum.
 
     Examples
@@ -869,7 +869,7 @@ def TR10i(rv):
                 return rv
 
             # two-arg Add
-            split = trig_split(*args, two=True)
+            split = trig_split(*args, two=True, _hyper=_hyper)
             if not split:
                 return rv
             gcd, n1, n2, a, b, same = split
@@ -1780,7 +1780,7 @@ def _roots():
 _ROOT2 = None
 
 
-def trig_split(a, b, two=False):
+def trig_split(a, b, two=False, _hyper=False):
     """Return the gcd, s1, s2, a1, a2, bool where
 
     If two is False (default) then::
@@ -1953,12 +1953,18 @@ def trig_split(a, b, two=False):
             cob = S.One
         if coa is cob:
             gcd *= _ROOT2
+            if _hyper:
+                return gcd, n1, n2, c.args[0], I*pi/4, False
             return gcd, n1, n2, c.args[0], pi/4, False
         elif coa/cob == _ROOT3:
             gcd *= 2*cob
+            if _hyper:
+                return gcd, n1, n2, c.args[0], I*pi/3, False
             return gcd, n1, n2, c.args[0], pi/3, False
         elif coa/cob == _invROOT3:
             gcd *= 2*coa
+            if _hyper:
+                return gcd, n1, n2, c.args[0], I*pi/6, False
             return gcd, n1, n2, c.args[0], pi/6, False
 
 
@@ -2049,6 +2055,10 @@ def _osborne(e, d):
             return I*tan(a)
         elif rv.func is coth:
             return cot(a)/I
+        elif rv.func is sech:
+            return sec(a)
+        elif rv.func is csch:
+            return csc(a)/I
         else:
             raise NotImplementedError('unhandled %s' % rv.func)
 
@@ -2084,9 +2094,9 @@ def _osbornei(e, d):
         elif rv.func is cot:
             return coth(a)*I
         elif rv.func is sec:
-            return 1/cosh(a)
+            return sech(a)
         elif rv.func is csc:
-            return I/sinh(a)
+            return csch(a)*I
         else:
             raise NotImplementedError('unhandled %s' % rv.func)
 
@@ -2102,6 +2112,9 @@ def hyper_as_trig(rv):
 
         t, f = hyper_as_trig(expr)
         expr == f(t)
+
+    Be careful in simplifying returned expression as some trigonometric
+    identities may not be directly applicable.
 
     Examples
     ========
