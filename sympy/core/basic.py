@@ -13,6 +13,22 @@ from .singleton import S
 from inspect import getmro
 
 
+def as_Basic(expr):
+    """Return expr as a Basic instance using strict sympify
+    or raise a TypeError"""
+    from sympy.utilities.misc import func_name
+    if not isinstance(expr, Basic):
+        try:
+            expr = _sympify(expr)
+            if not isinstance(expr, Basic):
+                raise SympifyError
+        except SympifyError:
+            raise TypeError(
+                'Argument must be a Basic object, not `%s`' % func_name(
+                expr))
+    return expr
+
+
 class Basic(with_metaclass(ManagedProperties)):
     """
     Base class for all objects in SymPy.
