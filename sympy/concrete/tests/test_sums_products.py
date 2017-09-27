@@ -877,7 +877,7 @@ def test_issue_2787():
     s = Sum(binomial_dist*k, (k, 0, n))
     res = s.doit().simplify()
     assert res == Piecewise(
-        (n*p, p/Abs(p - 1) <= 1),
+        (n*p, p <= S.Half),
         ((-p + 1)**n*Sum(k*p**k*(-p + 1)**(-k)*binomial(n, k), (k, 0, n)),
         True))
 
