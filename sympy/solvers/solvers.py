@@ -1421,15 +1421,10 @@ def _solve(f, *symbols, **flags):
                     continue
                 try:
                     v = cond.subs(symbol, candidate)
-                    try:
-                        # unconditionally take the simplification of v
-                        v = v._eval_simpify(
-                            ratio=2, measure=lambda x: 1)
-                    except AttributeError:
-                        pass
                 except TypeError:
                     # incompatible type with condition(s)
                     continue
+                v = _canonical(simplify(v))
                 if v == False:
                     continue
                 result.add(Piecewise(

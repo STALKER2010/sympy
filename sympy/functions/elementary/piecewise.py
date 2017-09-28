@@ -2,7 +2,8 @@ from __future__ import print_function, division
 
 from sympy.core import Basic, S, Function, diff, Tuple, Symbol
 from sympy.core.basic import as_Basic
-from sympy.core.relational import Equality, Relational, _canonical
+from sympy.core.relational import (Equality, Relational, _canonical,
+    simplify_relationships)
 from sympy.core.sympify import _sympify, SympifyError
 from sympy.functions.elementary.miscellaneous import Max, Min
 from sympy.logic.boolalg import (And, Boolean, distribute_and_over_or,
@@ -555,14 +556,12 @@ class Piecewise(Function):
         args = list(args)
         default = any(c == True for b, c in args)
         for i, (b, c) in enumerate(args):
-            if not isinstance(b, Boolean) and b != True and b != False:
+            if not isinstance(b, Boolean) and b != True:
                 raise TypeError(filldedent('''
                     Expecting Boolean or bool but got `%s`
                     ''' % func_name(b)))
             if c == True:
                 break
-            if c == False:
-                continue
             # loop over independent conditions for this b
             for c in c.args if isinstance(c, Or) else [c]:
                 free = c.free_symbols
@@ -626,11 +625,13 @@ def piecewise_fold(expr):
         for e, c in expr.args:
             if not isinstance(e, Piecewise):
                 e = piecewise_fold(e)
-            if c.has(Piecewise):
-                c = piecewise_fold(c)
+            # we don't keep Piecewise in condition because
+            # it has to be checked to see that it's complete
+            # and we convert it to ITE at that time
+            assert not c.has(Piecewise)  # pragma: no cover
             if isinstance(c, ITE):
-                c = c.to_nnf()
-                c = simplify_logic(c, form='cnf')
+                c = simplify_logic(c.to_nnf(), form='cnf')
+                c = simplify_relationships(c, extended=True)
             if isinstance(e, Piecewise):
                 new_args.extend([(piecewise_fold(ei), And(ci, c))
                     for ei, ci in e.args])

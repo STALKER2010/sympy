@@ -2002,7 +2002,7 @@ class FiniteSet(Set, EvalfMixin):
         for e in self._elements:
             t = Eq(e, other, evaluate=True)
             if isinstance(t, Eq):
-                t = t.simplify()
+                t = t.simplify()  # is this needed?
             if t == true:
                 return t
             elif t != false:

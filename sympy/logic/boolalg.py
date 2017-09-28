@@ -165,6 +165,19 @@ class BooleanAtom(Boolean):
     __rmod__ = _noop
     _eval_power = _noop
 
+    def __lt__(self, other):
+        # drop with Py2 is no longer supported
+        from sympy.utilities.misc import filldedent
+        raise TypeError(filldedent('''
+            A Boolean argument can only be used in
+            Eq and Ne; all other relationals expect
+            real expressions.
+        '''))
+
+    __le__ = __lt__
+    __gt__ = __lt__
+    __ge__ = __lt__
+
 
 class BooleanTrue(with_metaclass(Singleton, BooleanAtom)):
     """
@@ -226,15 +239,24 @@ class BooleanTrue(with_metaclass(Singleton, BooleanAtom)):
     Examples
     ========
 
-    >>> from sympy import sympify, true, Or
+    >>> from sympy import sympify, true, false, Or
     >>> sympify(True)
     True
-    >>> ~true
-    False
-    >>> ~True
-    -2
-    >>> Or(True, False)
+    >>> _ is True, _ is true
+    (False, True)
+
+    >>> Or(true, false)
     True
+    >>> _ is true
+    True
+
+    Python operators give a boolean result for true but a
+    bitwise result for True
+
+    >>> ~true, ~True
+    (False, -2)
+    >>> true >> true, True >> True
+    (True, 0)
 
     See Also
     ========
@@ -280,15 +302,24 @@ class BooleanFalse(with_metaclass(Singleton, BooleanAtom)):
     Examples
     ========
 
-    >>> from sympy import sympify, false, Or, true
+    >>> from sympy import sympify, true, false, Or
     >>> sympify(False)
     False
-    >>> false >> false
+    >>> _ is False, _ is false
+    (False, True)
+
+    >>> Or(true, false)
     True
-    >>> False >> False
-    0
-    >>> Or(True, False)
+    >>> _ is true
     True
+
+    Python operators give a boolean result for false but a
+    bitwise result for False
+
+    >>> ~false, ~False
+    (True, -1)
+    >>> false >> false, False >> False
+    (True, 0)
 
     See Also
     ========
@@ -333,6 +364,19 @@ class BooleanFunction(Application, Boolean):
     It is used as base class for And, Or, Not, etc.
     """
     is_Boolean = True
+
+    # XXX drop with Py2 is no longer supported
+    def __lt__(self, other):
+        from sympy.utilities.misc import filldedent
+        raise TypeError(filldedent('''
+            A Boolean argument can only be used in
+            Eq and Ne; all other relationals expect
+            real expressions.
+        '''))
+    __le__ = __lt__
+    __ge__ = __lt__
+    __gt__ = __lt__
+    # XXX
 
     @classmethod
     def binary_check_and_simplify(self, *args):
@@ -380,54 +424,16 @@ class BooleanFunction(Application, Boolean):
         return cls(*argset)
 
     def _eval_simplify(self, ratio, measure):
-        from sympy.calculus.util import periodicity
-        from sympy.core.relational import Relational, _canonical, Eq
-        from sympy.core.symbol import Dummy
-        def rv(expr):
-            if measure(expr) < ratio*measure(self):
-                return expr
-            else:
-                return self
-        expr = simplify_logic(self)
-        free = expr.free_symbols
-        if len(free) != 1:
-            return rv(expr.func(*[
-                a._eval_simplify(ratio, measure) for a in expr.args]))
-        x = free.pop()
-        if not all(periodicity(r, x) is None
-                for r in expr.atoms(Relational)):
-            return rv(expr)
-        # if there are no periodic Relationals then expr
-        # should be representable by intervals
-        try:
-            s = expr.as_set()
-        except NotImplementedError:
+        from sympy.core.relational import simplify_relationships
+        expr = self
+        expr = expr.func(*[
+            a._eval_simplify(ratio, measure) for a in expr.args])
+        expr = simplify_relationships(expr, extended=True)
+        expr = simplify_logic(expr)
+        if measure(expr) < ratio*measure(self):
             return expr
-        if s in (S.Reals, S.UniversalSet):
-            s = (x < oo) if expr.subs(x, oo) is S.false else (x <= oo)
         else:
-            s = _canonical(s.as_relational(x))
-            s = s.subs(x < oo, S.true).subs(x > -oo, S.true)
-            # if there were any relationals involving "<" or
-            # ">" at the start but they are gone now, restore
-            # a "sentinel" `x < oo` that will keep the
-            # result in the real domain
-            before = any(
-                r.rel_op not in ('==', '!=')
-                for r in expr.atoms(Relational))
-            after = any(
-                r.rel_op not in ('==', '!=')
-                for r in s.atoms(Relational))
-            if before and not after:
-                s = And(s, x < oo)
-            else:
-                T, F = S.true, S.false
-                print(s, expr,expr.subs(x,oo),expr.subs(x,-oo))
-                if expr.subs(x, oo) is F and s.subs(x, oo) is T:
-                    s = And(s, x < oo)
-                if expr.subs(x, -oo) is F and s.subs(x, -oo) is T:
-                    s = And(x > -oo, s)
-        return rv(s)
+            return self
 
     # the diff method below is copied from Expr class
     def diff(self, *symbols, **assumptions):

@@ -794,14 +794,18 @@ def test_as_Boolean():
 
 
 def test_simplify_Boolean():
-    assert simplify((x < oo) & (S(2) < x)) == (x > 2)
-    assert simplify((x < -oo) & (S(2) < x)) is S.false
+    assert simplify(Or(x < 1, x > 0)) == (x <= oo)
+    assert simplify(And(x > 1, x < 0)) == (x > oo)
+    assert simplify((x <= oo) & (S(2) < x)) == (x > 2)
+    assert simplify((x < oo) & (S(2) < x)).func is And
+    assert simplify((x < -oo) & (S(2) < x)) == (x > oo)
     assert simplify((x < -oo) | (S(2) < x)) == (x > 2)
-    assert simplify((x < oo) & (x > -oo)) == (x < oo)
+    assert simplify((x < oo) & (x > -oo)) == (x > -oo) & (x < oo)
     assert simplify(((x > 2) | (x < -2)) & (x > 0)) == (x > 2)
     r = (x < oo) & Eq(x, 2)
     assert simplify(r) == r
-    assert simplify((x**2 + x*(1 - x) < 1) & (y < 0)) == (x < 1) & (y < 0)
+    assert simplify((x**2 + x*(1 - x) < 1) & (y < 0)
+        ) == (x > -oo) & (x < 1) & (y < 0)
 
 
 def test_binary_symbols():

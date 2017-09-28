@@ -1097,6 +1097,7 @@ def test_checksol():
     assert checksol(Eq(x < 1, True), {x: 1}) is False
     assert checksol(Eq(x < 1, False), {x: 1}) is True
     assert checksol(Eq(x < 1, False), {x: 0}) is False
+    assert checksol(Eq(x + 1, x**2 + 1), {x: 1}) is True
     # expressions are not Booleans
     assert checksol(Eq(x + 1, False), {x: -1}) is False
     assert checksol(Eq(x + 1, True), {x: 0}) is False

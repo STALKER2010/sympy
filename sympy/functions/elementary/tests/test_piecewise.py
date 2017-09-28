@@ -28,6 +28,9 @@ def test_piecewise():
         Piecewise((x, Or(x < 1, x < 2)), (0, True))
     assert Piecewise((x, x < 1), (x, x < 2), (x, True)) == x
     assert Piecewise((x, True)) == x
+    # False condition is never retained
+    assert Piecewise((x, False)) == Piecewise(
+        (x, False), evaluate=False) == Piecewise()
     raises(TypeError, lambda: Piecewise(x))
     assert Piecewise((x, 1)) == x  # 1 and 0 are accepted as True/False
     raises(TypeError, lambda: Piecewise((x, 2)))
@@ -339,7 +342,7 @@ def test_piecewise_solve():
         (3 - x, S(0) > x - 3)
     )
     assert solve(absxm3 - y, x) == [
-        Piecewise((-y + 3, -y < 0), (S.NaN, True)),
+        Piecewise((-y + 3, y > 0), (S.NaN, True)),
         Piecewise((y + 3, y >= 0), (S.NaN, True))]
     p = Symbol('p', positive=True)
     assert solve(absxm3 - p, x) == [-p + 3, p + 3]
@@ -376,6 +379,7 @@ def test_piecewise_fold():
 
     assert piecewise_fold(Piecewise((x, ITE(x > 0, y < 1, y > 1)))
         ) == Piecewise((x, ((x <= 0) | (y < 1)) & ((x > 0) | (y > 1))))
+
 
 def test_piecewise_fold_piecewise_in_cond():
     p1 = Piecewise((cos(x), x < 0), (0, True))
@@ -619,3 +623,4 @@ def test_Piecewise_rewrite_as_ITE():
     # is complete but something other than as_set would need to be
     # used to detect this
     raises(NotImplementedError, lambda: _ITE((x, x < y), (y, x >= a)))
+    raises(ValueError, lambda: _ITE((a, x < 2), (b, x > 3)))
