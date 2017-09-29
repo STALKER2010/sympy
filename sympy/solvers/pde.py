@@ -61,6 +61,12 @@ allhints = (
     )
 
 
+def _simplify(eq):
+    if isinstance(eq, Eq):
+        return eq.func(*[simplify(i) for i in eq.args])
+    return simplify(eq)
+
+
 def pdsolve(eq, func=None, hint='default', dict=False, solvefun=None, **kwargs):
     """
     Solves any (supported) kind of partial differential equation.
@@ -224,7 +230,7 @@ def _handle_Integral(expr, func, order, hint):
         return expr
 
     elif hint == "1st_linear_constant_coeff":
-        return simplify(expr.doit())
+        return _simplify(expr.doit())
 
     else:
         return expr
@@ -477,7 +483,7 @@ def checkpdesol(pde, sol, func=None, solve_for_func=True):
     # try direct substitution of the solution into the PDE and simplify
     if sol.lhs == func:
         pde = pde.lhs - pde.rhs
-        s = simplify(pde.subs(func, sol.rhs).doit())
+        s = _simplify(pde.subs(func, sol.rhs).doit())
         return s is S.Zero, s
 
     raise NotImplementedError(filldedent('''
@@ -803,7 +809,7 @@ def _simplify_variable_coeff(sol, syms, func, funcarg):
             tempfun = Function(fname + str(key))
             final = sol.subs(sym, func(funcarg))
 
-    return simplify(final.subs(eta, funcarg))
+    return _simplify(final.subs(eta, funcarg))
 
 
 def pde_separate(eq, fun, sep, strategy='mul'):

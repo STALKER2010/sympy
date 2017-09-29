@@ -39,22 +39,18 @@ def _simplify_relational(orig, extended):
         return Not(_simplify_relational(Eq(*orig.args), extended))
 
     expr = orig
-
-
     expr = _canonical(expr)
     free = expr.free_symbols
     if len(free) != 1:
-        if not isinstance(expr, Eq):
-            expr = expr.func(*[simplify(i) for i in expr.args])
         return expr
-
     x = free.pop()
+
     if x in expr.binary_symbols:
         return expr
 
     if isinstance(expr, Relational):
-        if x == expr.lhs and x not in expr.rhs.free_symbols:
-            return expr.func(expr.lhs, expr.rhs.simplify())
+        if x == expr.lhs:
+            return expr
 
     if any(periodicity(_, x) not in (None, 0)
             for _ in expr.atoms(Relational)):
@@ -77,14 +73,17 @@ def _simplify_relational(orig, extended):
 
     if s in (S.Reals, S.UniversalSet):
         s = T
+        # the relationship is True provided that x is real;
+        # this is enforced by including a satisfying relationship
+        # with an infinite value
         include_oo = x <= oo
         if extended:
-            v = ok(expr, oo)
+            v = ok(orig, oo)
             if v is F:
                 s = (x < oo)
             elif v is T:
                 s = include_oo
-            v = ok(expr, -oo)
+            v = ok(orig, -oo)
             if v is F:
                 s = And(x > -oo, s)
             elif v is T and s != include_oo:
@@ -96,9 +95,9 @@ def _simplify_relational(orig, extended):
         if extended and (
                 isinstance(orig, Eq) or
                 not isinstance(orig, Relational)):
-            if orig.subs(x, oo) is T:
+            if ok(orig, oo) is T:
                 s = Eq(x, oo)
-            if orig.subs(x, -oo) is T:
+            if ok(orig, -oo) is T:
                 s = Eq(x, -oo) | s
         if s is F:
             if not isinstance(orig, Eq) or x.is_real:
@@ -347,8 +346,13 @@ class Relational(Boolean, Expr, EvalfMixin):
                 return l
 
     def _eval_simplify(self, ratio, measure):
+        from sympy.simplify.simplify import simplify
         r = self
         r = _simplify_relational(r, extended=True)
+        r = r.func(*[simplify(i, ratio, measure) for i in r.args])
+        if r in (S.true, S.false):
+            # count_ops for true and x < y are both 0
+            return r
         if r.is_Relational:
             dif = r.lhs - r.rhs
             # replace dif with a valid Number that will

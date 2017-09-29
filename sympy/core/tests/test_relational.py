@@ -585,6 +585,7 @@ def test_issue_8449():
 
 def test_rel_simplify():
     assert simplify(x*(y + 1) - x*y - x + 1 < x) == (x > 1)
+    assert simplify(Lt(1, 2, evaluate=False)) is S.true
     r = S(1) < x
     # canonical operations are not the same as simplification,
     # so if there is no simplification, canonicalization will
@@ -604,13 +605,6 @@ def test_rel_simplify():
     assert simplify(And(Eq(x, 2), x < 3)) == Eq(x, 2) & (x < oo)
     assert simplify(Eq(1/x, 0)) == Eq(x, oo) | Eq(x, -oo)
     assert simplify(Eq(1/(x**2 + x), 0)) == Eq(x, oo)
-    # if simplification of Eq is allowed, the response to
-    # oo may be different
-    a = Eq(y/(x**2 + x), 0)
-    b = Eq(y/x/(x + 1), 0)
-    assert a.lhs.equals(b.lhs) and a.rhs.equals(b.rhs)
-    assert simplify(a).subs(x, -oo) == a.subs(x, -oo)
-    assert simplify(b).subs(x, -oo) == b.subs(x, -oo)
     # care needs to be taken regarding oo and not returning
     # True when a non-equality is involved
     assert simplify(x*(x - 1) <= x**2 - x) == (x >= -oo) & (x < oo)
@@ -619,6 +613,19 @@ def test_rel_simplify():
     # if the first one changes, the second one must still pass
     assert simplify(Eq(1/x, 0)) == Eq(x, -oo) | Eq(x, oo)
     assert solveset(y - 1/x, x) == Complement(FiniteSet(1/y), FiniteSet(0))
+
+
+@XFAIL
+def test_simplify_care_with_oo():
+    # if simplification of Eq is allowed, the response to
+    # oo may be different. Is this a concern? In expand,
+    # for example, certain operations are not done if they
+    # are invalide under the given assumptions.
+    a = Eq(y/(x**2 + x), 0)
+    b = Eq(y/x/(x + 1), 0)
+    assert a.lhs.equals(b.lhs) and a.rhs.equals(b.rhs)
+    assert simplify(a).subs(x, -oo) == a.subs(x, -oo)
+    assert simplify(b).subs(x, -oo) == b.subs(x, -oo)
 
 
 def test_equals():
