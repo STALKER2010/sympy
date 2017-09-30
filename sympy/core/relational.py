@@ -60,7 +60,7 @@ def _simplify_relational(orig, extended):
     # should be representable by intervals
     try:
         s = expr.as_set()
-    except NotImplementedError:
+    except (TypeError, NotImplementedError):
         return expr
 
     oo = S.Infinity
