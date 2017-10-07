@@ -1,13 +1,13 @@
 from sympy.utilities.pytest import XFAIL, raises
 from sympy import (S, Symbol, symbols, nan, oo, I, pi, Float, And, Or,
     Not, Implies, Xor, zoo, sqrt, Rational, simplify, Function, Eq,
-    log, cos, sin)
+    log, cos, sin, ITE, solveset)
 from sympy.core.compatibility import range
 from sympy.core.relational import (Relational, Equality, Unequality,
                                    GreaterThan, LessThan, StrictGreaterThan,
                                    StrictLessThan, Rel, Eq, Lt, Le,
-                                   Gt, Ge, Ne)
-from sympy.sets.sets import Interval, FiniteSet
+                                   Gt, Ge, Ne, simplify_relationships)
+from sympy.sets.sets import Interval, FiniteSet, Complement
 
 x, y, z, t = symbols('x,y,z,t')
 
@@ -583,13 +583,49 @@ def test_issue_8449():
     assert Le(oo, -p) is S.false
 
 
-def test_simplify():
+def test_rel_simplify():
     assert simplify(x*(y + 1) - x*y - x + 1 < x) == (x > 1)
-    r = S(1) < -x
-    # until relationals have an _eval_simplify method
-    # if there is no simplification to do on either side
-    # the only the canonical form is returned
-    assert simplify(r) == r.canonical
+    assert simplify(Lt(1, 2, evaluate=False)) is S.true
+    r = S(1) < x
+    # canonical operations are not the same as simplification,
+    # so if there is no simplification, canonicalization will
+    # not be done
+    assert simplify(r) != r.canonical
+    # this is not a random test; in _eval_simplify
+    # this will simplify to S.false and that is the
+    # reason for the 'if r.is_Relational' in Relational's
+    # _eval_simplify routine
+    assert simplify(-(2**(3*pi/2) + 6**pi)**(1/pi) +
+        2*(2**(pi/2) + 3**pi)**(1/pi) < 0) is S.false
+    # the sense of the relational is lost if we return
+    # false, so we return something that will be false
+    # for any real value of x
+    assert simplify(x*(x - 1) < x**2 - x) == (x > oo)
+    assert simplify(And(x < 2, x < 3)) == (x < 2)
+    assert simplify(And(Eq(x, 2), x < 3)) == Eq(x, 2) & (x < oo)
+    assert simplify(Eq(1/x, 0)) == Eq(x, oo) | Eq(x, -oo)
+    assert simplify(Eq(1/(x**2 + x), 0)) == Eq(x, oo)
+    # care needs to be taken regarding oo and not returning
+    # True when a non-equality is involved
+    assert simplify(x*(x - 1) <= x**2 - x) == (x >= -oo) & (x < oo)
+    assert simplify(Eq(x**2, -1)) == Eq(x**2, -1)
+
+    # if the first one changes, the second one must still pass
+    assert simplify(Eq(1/x, 0)) == Eq(x, -oo) | Eq(x, oo)
+    assert solveset(y - 1/x, x) == Complement(FiniteSet(1/y), FiniteSet(0))
+
+
+@XFAIL
+def test_simplify_care_with_oo():
+    # if simplification of Eq is allowed, the response to
+    # oo may be different. Is this a concern? In expand,
+    # for example, certain operations are not done if they
+    # are invalide under the given assumptions.
+    a = Eq(y/(x**2 + x), 0)
+    b = Eq(y/x/(x + 1), 0)
+    assert a.lhs.equals(b.lhs) and a.rhs.equals(b.rhs)
+    assert simplify(a).subs(x, -oo) == a.subs(x, -oo)
+    assert simplify(b).subs(x, -oo) == b.subs(x, -oo)
 
 
 def test_equals():
@@ -707,3 +743,52 @@ def test_issue_10927():
     x = symbols('x')
     assert str(Eq(x, oo)) == 'Eq(x, oo)'
     assert str(Eq(x, -oo)) == 'Eq(x, -oo)'
+
+
+def test_simplify_relationships():
+    assert simplify_relationships(And(x < 2, x < 3),
+        extended=False) == (x > -oo) & (x < 2)
+    assert simplify_relationships(And(x < 2, x > 2)
+        ) == (x > oo)
+    assert simplify_relationships(And(x < 2, x < 3)
+        ) == (x < 2)
+    assert simplify_relationships(And(Eq(x, 2), x < 3)
+        ) == Eq(x, 2) & (x < oo)
+    assert simplify_relationships(And(x < 1, y < 2)) == And(x < 1, y < 2)
+    assert simplify_relationships(sin(x) < 1) == (sin(x) < 1)
+    assert simplify_relationships(x/abs(x - 1) < 2) == (
+        (x > -oo) & (x < oo) & ((x > 2) | (x < S(2)/3)))
+    t = x*(x - 1) <= x**2 - x  # rejects oo
+    assert simplify_relationships(t) == (x >= -oo) & (x < oo)
+    assert simplify_relationships(t, extended=False) == (x > -oo) & (x < oo)
+    t = x*(x + 1) <= x**2 + x  # rejects -oo
+    assert simplify_relationships(t) == (x <= oo) & (x > -oo)
+    assert simplify_relationships(t, extended=False) == (x > -oo) & (x < oo)
+    assert simplify_relationships(Eq(1/x, 0)) == Eq(x, -oo) | Eq(x, oo)
+    assert simplify_relationships(Eq(1/x, 0), extended=False
+        ) is S.false
+    assert simplify_relationships(Ne(1/x, 0)) == (x > -oo) & (x < oo)
+    assert simplify_relationships(Ne(1/x, 0), extended=False
+        ) is S.true
+    assert simplify_relationships(x | ~x) == (x | ~x)
+
+
+def test_binary_symbols():
+    ans = set([x])
+    for f in Eq, Ne:
+        for t in S.true, S.false:
+            eq = f(x, S.true)
+            assert eq.binary_symbols == ans
+            assert eq.reversed.binary_symbols == ans
+        assert f(x, 1).binary_symbols == set()
+
+
+def test_rel_args():
+    # can't have Boolean args; this is automatic with Python 3
+    # so this test and the __lt__, etc..., definitions in
+    # relational.py and boolalg.py which are marked with XXX
+    # can be removed.
+    for op in ['<', '<=', '>', '>=']:
+        for b in (S.true, x < 1, And(x, y)):
+            for v in (0.1, 1, 2**32, t, S(1)):
+                raises(TypeError, lambda: Relational(b, v, op))

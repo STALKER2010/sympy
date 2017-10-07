@@ -1131,6 +1131,7 @@ def solvify(f, symbol, domain):
         period = periodicity(f, symbol)
         if period is not None:
             solutions = S.EmptySet
+            iter_solutions = ()
             if isinstance(solution_set, ImageSet):
                 iter_solutions = (solution_set,)
             elif isinstance(solution_set, Union):
