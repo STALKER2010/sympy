@@ -2,7 +2,6 @@ language: python
 sudo: false
 env:
   matrix:
-  - TEST_DOCTESTS="true" FASTCACHE="false" TEST_SETUP="true"
   - SPLIT="1/4" TEST_SYMPY="true"
   - SPLIT="2/4" TEST_SYMPY="true"
   - SPLIT="3/4" TEST_SYMPY="true"
@@ -12,28 +11,11 @@ env:
 dist: trusty
 
 python:
-  - 2.7
-  - 3.4
-  - 3.5
   - 3.6
 
 matrix:
   include:
-    - python: 2.7
-      env:
-        - TEST_ASCII="true"
-        # space separated list of optional dependencies(conda packages) to install and test
-        # autowrap installs libgfortran libgcc gcc cython
-        - TEST_OPT_DEPENDENCY="numpy scipy gmpy2 matplotlib theano llvmlite autowrap python-symengine=0.3.*"
-      addons:
-        apt:
-          packages:
-            # for theano
-            - libatlas-dev
-            - libatlas-base-dev
-            - liblapack-dev
-            - gfortran
-    - python: 3.5
+    - python: 3.6
       env:
         - TEST_ASCII="true"
         - TEST_OPT_DEPENDENCY="numpy scipy gmpy2 matplotlib theano llvmlite autowrap python-symengine=0.3.*"
@@ -47,71 +29,22 @@ matrix:
             - gfortran
             - python-scipy
 
-    - python: 3.5
-      env:
-        - TEST_SPHINX="true"
-        - FASTCACHE="false"
-      addons:
-        apt:
-          packages:
-            - graphviz
-            - inkscape
-            - texlive
-            - texlive-xetex
-            - texlive-fonts-recommended
-            - texlive-latex-extra
-            - latexmk
-            - lmodern
-            - librsvg2-bin
-            - imagemagick
-            - docbook2x
-
-    - python: 2.7
+    - python: 3.6
       env:
         - TEST_SLOW="true"
         - SPLIT="1/3"
-    - python: 2.7
+    - python: 3.6
       env:
         - TEST_SLOW="true"
         - SPLIT="2/3"
-    - python: 2.7
-      env:
-        - TEST_SLOW="true"
-        - SPLIT="3/3"
-    - python: 3.5
-      env:
-        - TEST_SLOW="true"
-        - SPLIT="1/3"
-    - python: 3.5
-      env:
-        - TEST_SLOW="true"
-        - SPLIT="2/3"
-    - python: 3.5
+    - python: 3.6
       env:
         - TEST_SLOW="true"
         - SPLIT="3/3"
 
     # Everything here and below is in the allow_failures. The need to be
     # duplicated here and in that section below.
-    - python: 3.5 # Dummy value
-      env:
-        - TEST_SAGE="true"
-        - FASTCACHE="false"
-        - TEST_TENSORFLOW="true"
-      sudo: true
-      dist: trusty
 
-    - python: "pypy"
-      env:
-        - TEST_DOCTESTS="true"
-        - FASTCACHE="false"
-        - TEST_SETUP="true"
-      addons:
-        apt:
-          sources:
-            - pypy
-          packages:
-            - pypy
     - python: "pypy"
       env:
         - TEST_SYMPY="true"
@@ -158,26 +91,7 @@ matrix:
             - pypy
 
   allow_failures:
-    # The apt installation of sage fails sometimes
-    - python: 3.5 # Dummy value
-      env:
-        - TEST_SAGE="true"
-        - FASTCACHE="false"
-        - TEST_TENSORFLOW="true"
-      sudo: true
-      dist: trusty
     # PyPy randomly fails because of some PyPy bugs (Fatal RPython error: AssertionError)
-    - python: "pypy"
-      env:
-        - TEST_DOCTESTS="true"
-        - FASTCACHE="false"
-        - TEST_SETUP="true"
-      addons:
-        apt:
-          sources:
-            - pypy
-          packages:
-            - pypy
     - python: "pypy"
       env:
         - TEST_SYMPY="true"
@@ -227,9 +141,6 @@ before_install:
   - if [[ "${FASTCACHE}" != "false" ]]; then
       pip install fastcache;
     fi
-  - if [[ "${TEST_SPHINX}" == "true" ]]; then
-      pip install "sphinx" "docutils" doctr;
-    fi
   - |
     if [[ "${TEST_OPT_DEPENDENCY}" ]]; then
     # We do this conditionally because it saves us some downloading if the
@@ -250,22 +161,6 @@ before_install:
         source activate test-environment;
     elif [ "$TRAVIS_PYTHON_VERSION" != "pypy" ]; then
         pip list --format=legacy | grep "numpy" && pip uninstall -y numpy;
-    fi
-  - |
-    if [[ "${TEST_TENSORFLOW}" == "true" ]]; then
-      pip install mpmath;
-      if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-        pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp27-none-linux_x86_64.whl;
-      elif [[ "$TRAVIS_PYTHON_VERSION" == "3.4" ]]; then
-        pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp34-cp34m-linux_x86_64.whl;
-      elif [[ "$TRAVIS_PYTHON_VERSION" == "3.5" ]]; then
-        pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp35-cp35m-linux_x86_64.whl;
-      fi
-    fi
-  - if [[ "${TEST_SAGE}" == "true" ]]; then
-      sudo apt-add-repository -y ppa:aims/sagemath;
-      sudo apt-get update;
-      sudo apt-get install -y sagemath-upstream-binary;
     fi
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
       pip install matchpy;
@@ -294,8 +189,5 @@ script:
   # Don't run doctr if the build fails
   - set -e
   - bin/test_travis.sh
-  - if [[ "${TEST_SPHINX}" == "true" ]]; then
-        doctr deploy dev --deploy-repo sympy/sympy_doc --command './generate_indexes.py';
-    fi
 notifications:
   email: false
