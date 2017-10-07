@@ -44,12 +44,27 @@ def decompogen(f, symbol):
     if isinstance(f, (Function, Pow)):
         if f.args[0] == symbol:
             return [f]
+
+        if f.is_Pow:
+            base, expo = f.args
+            if expo.has(symbol):
+                if f.args[1] == symbol:
+                    return [f]
+                result += [f.subs(f.args[1], symbol)] + decompogen(f.args[1], symbol)
+                return result
+
         result += [f.subs(f.args[0], symbol)] + decompogen(f.args[0], symbol)
         return result
 
     # ===== Convert to Polynomial ===== #
     fp = Poly(f)
     gens = list(filter(lambda x: symbol in x.free_symbols , fp.gens))
+
+    if gens[0].is_Pow:
+        if gens[0].has(symbol):
+            if f.args[1].args[1] == symbol:
+                return [f]
+            return [f.subs(f.args[1].args[1], symbol)] + decompogen(f.args[1].args[1], symbol)
 
     if len(gens) == 1 and gens[0] != symbol:
         f1 = f.subs(gens[0], symbol)
