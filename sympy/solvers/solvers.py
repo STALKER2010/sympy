@@ -245,15 +245,13 @@ def checksol(f, symbol, sol=None, **flags):
     if isinstance(f, Poly):
         f = f.as_expr()
     elif isinstance(f, (Equality, Unequality)):
-        args = f.args
         if f.rhs in (S.true, S.false):
-            args = args[1], args[0]
-        B, E = args
+            f = f.reversed
+        B, E = f.args
         if B in (S.true, S.false):
-            if not (E.is_Symbol or E.is_Relational) and isinstance(E, Expr):
-                # Equality is always false since an expression can never
-                # be a Boolean
-                f = S.false
+            f = f.subs(sol)
+            if f not in (S.true, S.false):
+                return
         else:
             f = Add(f.lhs, -f.rhs, evaluate=False)
 
