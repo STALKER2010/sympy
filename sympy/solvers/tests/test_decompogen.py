@@ -19,6 +19,14 @@ def test_decompogen():
     raises(TypeError, lambda: decompogen(x < 5, x))
 
 
+def test_expo():
+    assert decompogen(2**x, x) == [2**x]
+    assert decompogen(2**(x+1), x) == [2**x, x+1]
+    assert decompogen(2**x - 10, x) == [2**x - 10]
+    assert decompogen(2**(x+3) - 4, x) == [2**x - 4, x+3]
+    assert decompogen(2**4**(x+1) - 16, x) == [2**x - 16, 4**x, x + 1]
+
+
 def test_decompogen_poly():
     assert decompogen(x**4 + 2*x**2 + 1, x) == [x**2 + 2*x + 1, x**2]
     assert decompogen(x**4 + 2*x**3 - x - 1, x) == [x**2 - x - 1, x**2 + x]
