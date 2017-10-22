@@ -826,7 +826,7 @@ class Add(Expr, AssocOp):
         return (self.func(*re_part), self.func(*im_part))
 
     def _eval_as_leading_term(self, x):
-        from sympy import expand_mul, factor_terms
+        from sympy import expand_mul, factor_terms, Order, simplify
 
         old = self
 
@@ -834,9 +834,30 @@ class Add(Expr, AssocOp):
         if not expr.is_Add:
             return expr.as_leading_term(x)
 
-        infinite = [t for t in expr.args if t.is_infinite]
+        infinite = [e for e in expr.args if e.is_infinite]
 
-        expr = expr.func(*[t.as_leading_term(x) for t in expr.args]).removeO()
+        leading_term = [(e, e.as_leading_term(x)) for e in expr.args]
+
+        new_expr = expr.func(*[lead for _, lead in leading_term]).removeO()
+
+        if new_expr and (new_expr is not S.NaN):
+            #to check if the leading term cancel each other out
+            if new_expr.is_Add:
+                final_leading_term = [e for e in new_expr.args]
+            else:
+                final_leading_term = [new_expr]
+
+            if len(expr.args) != len(final_leading_term):
+                canceled_term = [(e, lead) for e, lead in leading_term if lead not in final_leading_term]
+                expr_sum = expr.func(*[lead for _, lead in canceled_term])
+                if expr_sum == S(0):
+                    for e, lead in canceled_term:
+                        lead_term = (simplify(e - lead)).as_leading_term(x)
+                        final_leading_term.append(lead_term)
+                    new_expr = expr.func(*final_leading_term).removeO()
+
+        expr = new_expr
+
         if not expr:
             # simple leading term analysis gave us 0 but we have to send
             # back a term, so compute the leading term (via series)
