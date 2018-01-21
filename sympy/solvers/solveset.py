@@ -613,7 +613,7 @@ def solve_decomposition(f, symbol, domain):
                2
     >>> f3 = sin(x + 2)
     >>> pprint(sd(f3, x, S.Reals), use_unicode=False)
-    {2*n*pi - 2 | n in S.Integers} U {pi*(2*n + 1) - 2 | n in S.Integers}
+    {n*pi - 2 | n in S.Integers}
 
     """
     from sympy.solvers.decompogen import decompogen
@@ -879,12 +879,12 @@ def solveset(f, symbol=None, domain=S.Complexes):
     The solution is mostly unaffected by assumptions on the symbol,
     but there may be some slight difference:
 
-    >>> pprint(solveset(sin(x)/x,x), use_unicode=False)
-    ({2*n*pi | n in S.Integers} \ {0}) U ({2*n*pi + pi | n in S.Integers} \ {0})
+    >>> pprint(solveset_real(sin(x)/x, x), use_unicode=False)
+    {n*pi | n in S.Integers} \ {0}
 
     >>> p = Symbol('p', positive=True)
-    >>> pprint(solveset(sin(p)/p, p), use_unicode=False)
-    {2*n*pi | n in S.Integers} U {2*n*pi + pi | n in S.Integers}
+    >>> pprint(solveset_real(sin(p)/p, p), use_unicode=False)
+    {n*pi | n in  S.Integers}
 
     * Inequalities can be solved over the real domain only. Use of a complex
       domain leads to a NotImplementedError.
