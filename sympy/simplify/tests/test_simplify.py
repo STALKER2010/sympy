@@ -690,6 +690,13 @@ def test_issue_13474():
     assert simplify(x + csch(sinc(1))) == x + csch(sinc(1))
 
 
+def test_issue_14421():
+    t = symbols('t')
+    V = MatrixSymbol('V', 2, 1)
+    expr = sin(t)**2*V[1,0]/V[0,0]**2 + cos(t)*sin(t) + cos(t)**2*V[1,0]/V[0,0]**2
+    assert expr.simplify() == sin(2*t)/2 + V[1, 0]/V[0, 0]**2
+
+
 def test_simplify_function_inverse():
     # "inverse" attribute does not guarantee that f(g(x)) is x
     # so this simplification should not happen automatically.
