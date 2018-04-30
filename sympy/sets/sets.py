@@ -39,6 +39,7 @@ class Set(Basic):
     is_number = False
     is_iterable = False
     is_interval = False
+    is_empty = None
 
     is_FiniteSet = False
     is_Interval = False
@@ -879,6 +880,70 @@ class Interval(Set, EvalfMixin):
         """
         return self._args[3]
 
+    @property
+    def is_empty(self):
+        if (self.start < self.end) == True:
+            return False
+        else:
+            return None
+
+    def _intersect(self, other):
+        """
+        This function should only be used internally
+
+        See Set._intersect for docstring
+        """
+        if other.is_EmptySet:
+            return other
+        # We only know how to intersect with other intervals
+        if not other.is_Interval:
+            return None
+
+        # handle (-oo, oo)
+        infty = S.NegativeInfinity, S.Infinity
+        if self == Interval(*infty):
+            l, r = self.left, self.right
+            if l.is_real or l in infty or r.is_real or r in infty:
+                return other
+
+        # We can't intersect [0,3] with [x,6] -- we don't know if x>0 or x<0
+        if not self._is_comparable(other):
+            return None
+
+        empty = False
+
+        if self.start <= other.end and other.start <= self.end:
+            # Get topology right.
+            if self.start < other.start:
+                start = other.start
+                left_open = other.left_open
+            elif self.start > other.start:
+                start = self.start
+                left_open = self.left_open
+            else:
+                start = self.start
+                left_open = self.left_open or other.left_open
+
+            if self.end < other.end:
+                end = self.end
+                right_open = self.right_open
+            elif self.end > other.end:
+                end = other.end
+                right_open = other.right_open
+            else:
+                end = self.end
+                right_open = self.right_open or other.right_open
+
+            if end - start == 0 and (left_open or right_open):
+                empty = True
+        else:
+            empty = True
+
+        if empty:
+            return S.EmptySet
+
+        return Interval(start, end, left_open, right_open)
+
     def _complement(self, other):
         if other == S.Reals:
             a = Interval(S.NegativeInfinity, self.start,
@@ -1123,6 +1188,18 @@ class Union(Set, EvalfMixin):
                     and b.sup is S.Infinity):
                 return And(Ne(symbol, a.sup), symbol < b.sup, symbol > a.inf)
         return Or(*[set.as_relational(symbol) for set in self.args])
+
+    @property
+    def is_empty(self):
+        for arg in self.args:
+            if not arg.is_EmptySet:
+                return False
+            elif arg.is_EmptySet:
+                continue
+            else:
+                return None
+
+        return True
 
     @property
     def is_iterable(self):
@@ -1406,6 +1483,7 @@ class EmptySet(with_metaclass(Singleton, Set)):
     """
     is_EmptySet = True
     is_FiniteSet = True
+    is_empty = True
 
     @property
     def _measure(self):
